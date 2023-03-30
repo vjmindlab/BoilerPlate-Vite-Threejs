@@ -16,6 +16,6 @@
     "vite-plugin-minify": "^1.5.2"
   },
   "dependencies": {
-    "three": "^0.150.1"
+    "three": "^0.151.0"
   }
 }

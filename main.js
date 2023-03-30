@@ -1,3 +1,10 @@
+/* eslint-disable operator-linebreak */
+/* eslint-disable comma-dangle */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-shadow */
+/* eslint-disable no-undef */
+/* eslint-disable import/no-unresolved */
+/* eslint-disable import/extensions */
 /* eslint-disable no-param-reassign */
 /* eslint-disable comma-dangle */
 /* eslint-disable operator-linebreak */
@@ -85,6 +92,8 @@ function init() {
     model.scale.set(1, 1, 1);
     scene.add(model);
 
+    // loaderAnim.remove();
+
     mixer = new AnimationMixer(model);
 
     const idleAnim = AnimationClip.findByName(fileAnimations, 'idle');
@@ -122,25 +131,7 @@ function init() {
   shadowCatcher.position.y = -1;
   scene.add(shadowCatcher);
 }
-
 init();
-
-function render() {
-  if (mixer) {
-    mixer.update(clock.getDelta());
-  }
-
-  if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-  }
-
-  renderer.render(scene, camera);
-  requestAnimationFrame(render);
-}
-
-render();
 
 function resizeRendererToDisplaySize(renderer) {
   const canvas = renderer.domElement;
@@ -156,3 +147,19 @@ function resizeRendererToDisplaySize(renderer) {
   }
   return needResize;
 }
+
+function render() {
+  if (mixer) {
+    mixer.update(clock.getDelta());
+  }
+
+  if (resizeRendererToDisplaySize(renderer)) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(render);
+}
+render();
