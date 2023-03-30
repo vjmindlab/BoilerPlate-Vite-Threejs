@@ -1,3 +1,11 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable comma-dangle */
+/* eslint-disable operator-linebreak */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-shadow */
+/* eslint-disable no-undef */
+/* eslint-disable import/extensions */
+/* eslint-disable import/no-unresolved */
 import {
   Clock,
   Scene,
@@ -28,7 +36,6 @@ let mixer;
 let idle;
 const clock = new Clock();
 
-init();
 function init() {
   const MODEL_PATH = 'suzanne.glb';
   const canvas = document.querySelector('#c');
@@ -57,7 +64,7 @@ function init() {
     50,
     window.innerWidth / window.innerHeight,
     0.1,
-    50,
+    50
   );
   camera.position.z = 3;
 
@@ -77,8 +84,6 @@ function init() {
 
     model.scale.set(1, 1, 1);
     scene.add(model);
-
-    // loaderAnim.remove();
 
     mixer = new AnimationMixer(model);
 
@@ -118,6 +123,8 @@ function init() {
   scene.add(shadowCatcher);
 }
 
+init();
+
 function render() {
   if (mixer) {
     mixer.update(clock.getDelta());
@@ -142,7 +149,8 @@ function resizeRendererToDisplaySize(renderer) {
   const canvasPixelWidth = canvas.width / window.devicePixelRatio;
   const canvasPixelHeight = canvas.height / window.devicePixelRatio;
 
-  const needResize = canvasPixelWidth !== width || canvasPixelHeight !== height;
+  const needResize =
+    canvasPixelWidth !== width || canvasPixelHeight !== height;
   if (needResize) {
     renderer.setSize(width, height, false);
   }
