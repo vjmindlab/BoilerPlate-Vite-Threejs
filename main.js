@@ -84,8 +84,6 @@ function init() {
     model.scale.set(1, 1, 1);
     scene.add(model);
 
-    // loaderAnim.remove();
-
     mixer = new AnimationMixer(model);
 
     const idleAnim = AnimationClip.findByName(fileAnimations, 'idle');
