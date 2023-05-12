@@ -3539,7 +3539,7 @@ async function Or() {
         color: '#00FF00',
         lineWidth: 5,
       }),
-        jr.drawLandmarks(bt, B, { color: '#FF0000', lineWidth: 2 });
+        drawLandmarks(bt, B, { color: '#FF0000', lineWidth: 2 });
   bt.restore(), Dt === !0 && window.requestAnimationFrame(Or);
 }
 //# sourceMappingURL=index-c8b6dc50.js.map
