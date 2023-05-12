@@ -1,165 +1,209 @@
-/* eslint-disable operator-linebreak */
-/* eslint-disable comma-dangle */
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-shadow */
-/* eslint-disable no-undef */
-/* eslint-disable import/no-unresolved */
-/* eslint-disable import/extensions */
-/* eslint-disable no-param-reassign */
-/* eslint-disable comma-dangle */
-/* eslint-disable operator-linebreak */
-/* eslint-disable no-use-before-define */
-/* eslint-disable no-shadow */
-/* eslint-disable no-undef */
-/* eslint-disable import/extensions */
-/* eslint-disable import/no-unresolved */
+// Copyright 2023 The MediaPipe Authors.
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//      http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import {
-  Clock,
-  Scene,
-  EquirectangularReflectionMapping,
-  sRGBEncoding,
-  ACESFilmicToneMapping,
-  PerspectiveCamera,
-  AnimationMixer,
-  AnimationClip,
-  HemisphereLight,
-  DirectionalLight,
-  Vector2,
-  PlaneGeometry,
-  Mesh,
-  WebGLRenderer,
-  ShadowMaterial,
-} from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+  HandLandmarker,
+  FilesetResolver,
+} from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0';
 
-let scene;
-let renderer;
-let texture;
-let camera;
-let model;
-let mixer;
-let idle;
-const clock = new Clock();
+const demosSection = document.getElementById('demos');
 
-function init() {
-  const MODEL_PATH = 'suzanne.glb';
-  const canvas = document.querySelector('#c');
+let handLandmarker = undefined;
+let runningMode = 'IMAGE';
+let enableWebcamButton: HTMLButtonElement;
+let webcamRunning: Boolean = false;
 
-  scene = new Scene();
-
-  new RGBELoader().setPath('').load('neutral.hdr', (texture) => {
-    texture.mapping = EquirectangularReflectionMapping;
-    scene.environment = texture;
-  });
-
-  renderer = new WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
-  });
-  renderer.shadowMap.enabled = true;
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.outputEncoding = sRGBEncoding;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1;
-  renderer.setClearColor(0x000000, 0);
-  document.body.appendChild(renderer.domElement);
-
-  camera = new PerspectiveCamera(
-    50,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    50
+// Before we can use HandLandmarker class we must wait for it to finish
+// loading. Machine Learning models can be large and take a moment to
+// get everything needed to run.
+const createHandLandmarker = async () => {
+  const vision = await FilesetResolver.forVisionTasks(
+    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
   );
-  camera.position.z = 3;
+  handLandmarker = await HandLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
+      delegate: 'GPU',
+    },
+    runningMode: runningMode,
+    numHands: 2,
+  });
+  demosSection.classList.remove('invisible');
+};
+createHandLandmarker();
 
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  loader.load(MODEL_PATH, (gltf) => {
-    model = gltf.scene;
-    const fileAnimations = gltf.animations;
-    model.traverse((o) => {
-      if (o.isMesh) {
-        o.frustumCulled = false; // Fix the disapearing mesh due to Meshopt compression
-        o.castShadow = true;
-        o.receiveShadow = true;
-        o.envMap = texture;
-      }
+/********************************************************************
+// Demo 1: Grab a bunch of images from the page and detection them
+// upon click.
+********************************************************************/
+
+// In this demo, we have put all our clickable images in divs with the
+// CSS class 'detectionOnClick'. Lets get all the elements that have
+// this class.
+const imageContainers =
+  document.getElementsByClassName('detectOnClick');
+
+// Now let's go through all of these and add a click event listener.
+for (let i = 0; i < imageContainers.length; i++) {
+  // Add event listener to the child element whichis the img element.
+  imageContainers[i].children[0].addEventListener(
+    'click',
+    handleClick
+  );
+}
+
+// When an image is clicked, let's detect it and display results!
+async function handleClick(event) {
+  if (!handLandmarker) {
+    console.log('Wait for handLandmarker to load before clicking!');
+    return;
+  }
+
+  if (runningMode === 'VIDEO') {
+    runningMode = 'IMAGE';
+    await handLandmarker.setOptions({ runningMode: 'IMAGE' });
+  }
+  // Remove all landmarks drawed before
+  const allCanvas =
+    event.target.parentNode.getElementsByClassName('canvas');
+  for (var i = allCanvas.length - 1; i >= 0; i--) {
+    const n = allCanvas[i];
+    n.parentNode.removeChild(n);
+  }
+
+  // We can call handLandmarker.detect as many times as we like with
+  // different image data each time. This returns a promise
+  // which we wait to complete and then call a function to
+  // print out the results of the prediction.
+  const handLandmarkerResult = handLandmarker.detect(event.target);
+  const canvas = document.createElement('canvas');
+  canvas.setAttribute('class', 'canvas');
+  canvas.setAttribute('width', event.target.naturalWidth + 'px');
+  canvas.setAttribute('height', event.target.naturalHeight + 'px');
+  canvas.style =
+    'left: 0px;' +
+    'top: 0px;' +
+    'width: ' +
+    event.target.width +
+    'px;' +
+    'height: ' +
+    event.target.height +
+    'px;';
+
+  event.target.parentNode.appendChild(canvas);
+  const cxt = canvas.getContext('2d');
+  for (const landmarks of handLandmarkerResult.landmarks) {
+    drawConnectors(cxt, landmarks, HAND_CONNECTIONS, {
+      color: '#00FF00',
+      lineWidth: 5,
     });
+    drawLandmarks(cxt, landmarks, { color: '#FF0000', lineWidth: 1 });
+  }
+}
 
-    model.scale.set(1, 1, 1);
-    scene.add(model);
+/********************************************************************
+// Demo 2: Continuously grab image from webcam stream and detect it.
+********************************************************************/
 
-    // loaderAnim.remove();
+const video = document.getElementById('webcam') as HTMLVideoElement;
+const canvasElement = document.getElementById(
+  'output_canvas'
+) as HTMLCanvasElement;
+const canvasCtx = canvasElement.getContext('2d');
 
-    mixer = new AnimationMixer(model);
+// Check if webcam access is supported.
+const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia;
 
-    const idleAnim = AnimationClip.findByName(fileAnimations, 'idle');
+// If webcam supported, add event listener to button for when user
+// wants to activate it.
+if (hasGetUserMedia()) {
+  enableWebcamButton = document.getElementById('webcamButton');
+  enableWebcamButton.addEventListener('click', enableCam);
+} else {
+  console.warn('getUserMedia() is not supported by your browser');
+}
 
-    idle = mixer.clipAction(idleAnim);
-    idle.play();
+// Enable the live webcam view and start detection.
+function enableCam(event) {
+  if (!handLandmarker) {
+    console.log('Wait! objectDetector not loaded yet.');
+    return;
+  }
+
+  if (webcamRunning === true) {
+    webcamRunning = false;
+    enableWebcamButton.innerText = 'ENABLE PREDICTIONS';
+  } else {
+    webcamRunning = true;
+    enableWebcamButton.innerText = 'DISABLE PREDICTIONS';
+  }
+
+  // getUsermedia parameters.
+  const constraints = {
+    video: true,
+  };
+
+  // Activate the webcam stream.
+  navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+    video.srcObject = stream;
+    video.addEventListener('loadeddata', predictWebcam);
   });
-
-  const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 0.2);
-  scene.add(hemiLight);
-
-  // Add directional Light to scene
-  const d = 2;
-  const dirLight = new DirectionalLight(0xffffff, 0.2);
-  dirLight.position.set(-8, 12, 8);
-  dirLight.castShadow = true;
-  dirLight.shadow.mapSize = new Vector2(1024, 1024);
-  dirLight.shadow.camera.near = 1;
-  dirLight.shadow.camera.far = 150;
-  dirLight.shadow.camera.left = d * -1;
-  dirLight.shadow.camera.right = d;
-  dirLight.shadow.camera.top = d;
-  dirLight.shadow.camera.bottom = d * -1;
-  scene.add(dirLight);
-
-  const shadowGeometry = new PlaneGeometry(5, 5, 1, 1);
-  const shadowMaterial = new ShadowMaterial({
-    opacity: 0.3,
-  });
-
-  // Add the Shadow Catcher to scene
-  const shadowCatcher = new Mesh(shadowGeometry, shadowMaterial);
-  shadowCatcher.rotation.x = -0.5 * Math.PI;
-  shadowCatcher.receiveShadow = true;
-  shadowCatcher.position.y = -1;
-  scene.add(shadowCatcher);
-}
-init();
-
-function resizeRendererToDisplaySize(renderer) {
-  const canvas = renderer.domElement;
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const canvasPixelWidth = canvas.width / window.devicePixelRatio;
-  const canvasPixelHeight = canvas.height / window.devicePixelRatio;
-
-  const needResize =
-    canvasPixelWidth !== width || canvasPixelHeight !== height;
-  if (needResize) {
-    renderer.setSize(width, height, false);
-  }
-  return needResize;
 }
 
-function render() {
-  if (mixer) {
-    mixer.update(clock.getDelta());
+let lastVideoTime = -1;
+let results = undefined;
+console.log(video);
+async function predictWebcam() {
+  canvasElement.style.width = video.videoWidth;
+  canvasElement.style.height = video.videoHeight;
+  canvasElement.width = video.videoWidth;
+  canvasElement.height = video.videoHeight;
+
+  // Now let's start detecting the stream.
+  if (runningMode === 'IMAGE') {
+    runningMode = 'VIDEO';
+    await handLandmarker.setOptions({ runningMode: 'VIDEO' });
+  }
+  let startTimeMs = performance.now();
+  if (lastVideoTime !== video.currentTime) {
+    lastVideoTime = video.currentTime;
+    results = handLandmarker.detectForVideo(video, startTimeMs);
   }
 
-  if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
+  canvasCtx.save();
+  canvasCtx.clearRect(
+    0,
+    0,
+    canvasElement.width,
+    canvasElement.height
+  );
+  if (results.landmarks) {
+    for (const landmarks of results.landmarks) {
+      drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+        color: '#00FF00',
+        lineWidth: 5,
+      });
+      drawLandmarks(canvasCtx, landmarks, {
+        color: '#FF0000',
+        lineWidth: 2,
+      });
+    }
   }
+  canvasCtx.restore();
 
-  renderer.render(scene, camera);
-  requestAnimationFrame(render);
+  // Call this function again to keep predicting when the browser is ready.
+  if (webcamRunning === true) {
+    window.requestAnimationFrame(predictWebcam);
+  }
 }
-render();
