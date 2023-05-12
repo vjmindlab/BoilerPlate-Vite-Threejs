@@ -19,6 +19,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['three'],
+          vision: ['@mediapipe/tasks-vision'],
         },
       },
     },

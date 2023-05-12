@@ -1,58 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <title>Vite Threejs Boilerplate</title>
-    <style>
-      :root {
-        font-family: Inter, system-ui, Avenir, Helvetica, Arial,
-          sans-serif;
-        line-height: 1.5;
-        font-weight: 400;
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - MediaPipe HandLandmarker Task for web</title>
+  <link rel="stylesheet" href="./style.css">
 
-        color: rgba(255, 255, 255, 0.87);
-        background-color: #242424;
+</head>
+<body>
 
-        font-synthesis: none;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        -webkit-text-size-adjust: 100%;
-      }
 
-      * {
-        touch-action: manipulation;
-      }
+<body>
+ 
 
-      *,
-      *:before,
-      *:after {
-        box-sizing: border-box;
-      }
+  <section id="demos" class="invisible">
 
-      body {
-        margin: 0;
-        display: flex;
-        place-items: center;
-        min-width: 320px;
-        min-height: 100vh;
-      }
 
-      #c {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="c"></canvas>
-    <script type="module" src="/main.js"></script>
-  </body>
+    <div id="liveView" class="videoView">
+      <button id="webcamButton" class="mdc-button mdc-button--raised">
+        <span class="mdc-button__ripple"></span>
+        <span class="mdc-button__label">ENABLE WEBCAM</span>
+      </button>
+      <div style="position: relative;">
+        <video id="webcam" style="position: abso" autoplay playsinline></video>
+        <canvas class="output_canvas" id="output_canvas" style="position: absolute; left: 0px; top: 0px;"></canvas>
+      </div>
+    </div>
+  </section>
+<!-- partial -->
+  <script type="module" src="./script.js"></script>
+
+</body>
 </html>
