@@ -9,13 +9,14 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "eslint": "^8.37.0",
+    "eslint": "^8.41.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "vite": "^4.2.1",
+    "vite": "^4.3.8",
     "vite-plugin-minify": "^1.5.2"
   },
   "dependencies": {
-    "three": "^0.151.0"
+    "gsap": "^3.11.5",
+    "three": "^0.152.2"
   }
 }
