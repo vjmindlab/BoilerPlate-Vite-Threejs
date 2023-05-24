@@ -120,9 +120,12 @@
         bottom: 25px;
         left: 50%;
         transform: translateX(-50%);
-        font-family: Modelica-Regular, 'sans serif';
+        font-family: Modelica-Bold, 'sans serif';
         font-size: 1.1rem;
         z-index: 20;
+        /* backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px); */
+        /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
       }
 
       .colors {
@@ -135,10 +138,36 @@
       }
 
       .colors svg {
-        width: 50px;
-        height: 50px;
+        width: 34px;
+        height: 34px;
         opacity: 0.5;
         transition: all 0.5s;
+      }
+
+      .colop {
+        display: flex;
+        visibility: hidden;
+        opacity: 0;
+        flex-direction: column;
+        position: absolute;
+        bottom: -10px;
+        left: 20%;
+        gap: 10px;
+        background-color: rgba(158, 158, 158, 0.473);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: solid 1px var(--bor-color);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.5s ease;
+      }
+
+      .colopen {
+        visibility: visible;
+        opacity: 1;
+        bottom: 60px;
       }
 
       .camera {
@@ -157,6 +186,32 @@
         fill: var(--svg-fill);
         stroke: var(--svg-stor);
         transition: all 0.5s;
+      }
+
+      .camop {
+        display: flex;
+        visibility: hidden;
+        opacity: 0;
+        flex-direction: column;
+        position: absolute;
+        bottom: -10px;
+        left: 25%;
+        gap: 10px;
+        background-color: rgba(158, 158, 158, 0.473);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: solid 1px var(--bor-color);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.5s ease;
+      }
+
+      .camopen {
+        visibility: visible;
+        opacity: 1;
+        bottom: 60px;
       }
 
       .darklight {
@@ -203,11 +258,15 @@
         transition: all 0.5s;
       }
 
-      .active,
+      .active svg,
       .colors:hover svg,
       .camera:hover svg,
       .darklight:hover {
         opacity: 1;
+      }
+
+      .camop p:hover {
+        color: #e45527;
       }
     </style>
   </head>
@@ -282,53 +341,55 @@
     <div class="options">
       <div class="colors">
         <svg
-          version="1.1"
-          id="Icon1"
-          viewBox="0 0 34 34"
+          viewBox="0 0 252.667 252.667"
           xml:space="preserve"
+          width="34"
+          height="34"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <style type="text/css"></style>
-          <g
-            id="g743"
-            transform="matrix(.08307 0 0 .08307 6.506 6.506)"
-          >
-            <circle
-              style="fill: #2b8a9a"
-              cx="126.333"
-              cy="126.333"
-              r="126.333"
-              id="circle729"
+          <defs>
+            <linearGradient id="a">
+              <stop
+                style="stop-color: #57bea2; stop-opacity: 1"
+                offset="0"
+              />
+              <stop
+                style="stop-color: #f0f; stop-opacity: 1"
+                offset="1"
+              />
+            </linearGradient>
+            <linearGradient
+              xlink:href="#a"
+              id="b"
+              x1="155.02"
+              y1="89.848"
+              x2="240.307"
+              y2="401.078"
+              gradientUnits="userSpaceOnUse"
             />
-            <g id="g741">
-              <path
-                style="fill: #1c7287"
-                d="M215.664 37.002c-49.336-49.336-129.326-49.336-178.662 0l89.331 89.331z"
-                id="path731"
-              />
-              <path
-                style="fill: #165c6c"
-                d="M126.334 0C94.002 0 61.67 12.334 37.002 37.002l89.331 89.331z"
-                id="path733"
-              />
-              <path
-                style="fill: #f8b242"
-                d="M37.002 215.664c49.336 49.336 129.326 49.336 178.662 0l-89.331-89.331z"
-                id="path735"
-              />
-              <path
-                style="fill: #d09838"
-                d="M37.003 215.664c24.668 24.668 57.331 37.002 89.331 37.002V126.333z"
-                id="path737"
-              />
-              <path
-                style="fill: #e45527"
-                d="m215.664 37.002-89.331 89.331 89.331 89.331c49.337-49.336 49.337-129.326 0-178.662z"
-                id="path739"
-              />
-            </g>
-          </g>
+          </defs>
+          <path
+            style="display: inline; fill: url(#b); fill-opacity: 1"
+            d="M281.098 88.894a126.333 126.333 0 0 1-77.988 116.717 126.333 126.333 0 0 1-137.676-27.386l89.33-89.33z"
+            transform="rotate(15)"
+          />
+          <path
+            style="display: inline; fill: #666"
+            d="M122.328-146.478a126.333 126.333 0 0 1-89.33 89.33A126.333 126.333 0 0 1-89.031-89.843L.3-179.175z"
+            transform="rotate(135)"
+          />
+          <path
+            style="display: inline; fill: #f9f9f9"
+            d="M-.575 126.484A126.333 126.333 0 0 1-63.742 235.89a126.333 126.333 0 0 1-126.333 0l63.167-109.407z"
+            transform="rotate(-90)"
+          />
         </svg>
+        <div class="colop">
+          <p>Matte Grey</p>
+          <p>Matte White</p>
+          <p>Iridescent</p>
+        </div>
       </div>
       <div class="camera">
         <svg
@@ -354,6 +415,15 @@
             />
           </g>
         </svg>
+        <div class="camop">
+          <p>Front</p>
+          <p>Back</p>
+          <p>Top</p>
+          <p>Bottom</p>
+          <p>Left Side</p>
+          <p>Right Side</p>
+          <p>Rotation</p>
+        </div>
       </div>
       <div class="darklight">
         <div class="darklight1">
