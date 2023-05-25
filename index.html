@@ -44,9 +44,11 @@
         background: #464646;
         transition: all 0.5s;
         --bor-color: #c2c2c2;
-        --svg-fill: #eee;
-        --svg-stor: #eee;
+        --svg-fill: #cdcdcd;
+        --svg-stor: #cdcdcd;
         --col-log: #eee;
+        --glow: #eee;
+        --hover: #fff;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -54,9 +56,11 @@
           color: #eee;
           background: #464646;
           --bor-color: #c2c2c2;
-          --svg-fill: #eee;
-          --svg-stor: #eee;
+          --svg-fill: #cdcdcd;
+          --svg-stor: #cdcdcd;
           --col-log: #eee;
+          --glow: #eee;
+          --hover: #fff;
           transition: all 0.5s;
         }
       }
@@ -68,6 +72,8 @@
           --svg-fill: #464646;
           --svg-stor: #464646;
           --col-log: #464646;
+          --hover: #000;
+          --glow: rgb(167, 36, 255);
           transition: all 0.5s;
         }
       }
@@ -79,6 +85,8 @@
         --svg-fill: #464646;
         --svg-stor: #464646;
         --col-log: #464646;
+        --glow: rgb(167, 36, 255);
+        --hover: #000;
         transition: all 0.5s;
       }
 
@@ -100,51 +108,110 @@
 
       h1 {
         font-family: Modelica-Bold, 'sans serif';
-        font-size: 78px;
+        font-size: clamp(32px, 4vw, 78px);
       }
 
       .options {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         grid-template-rows: 1fr;
-        grid-auto-columns: 1fr;
-        gap: 0px 0px;
+        gap: 0px 40px;
+        padding-left: 20px;
+        padding-right: 20px;
         grid-auto-flow: row;
         grid-template-areas: 'colors camera darklight';
-        background-color: rgba(158, 158, 158, 0.473);
+        background-color: rgba(158, 158, 158, 0.815);
         border: solid 1px var(--bor-color);
         position: absolute;
         border-radius: 50px;
         height: 50px;
-        width: 250px;
         bottom: 25px;
         left: 50%;
         transform: translateX(-50%);
         font-family: Modelica-Bold, 'sans serif';
         font-size: 1.1rem;
         z-index: 20;
-        /* backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px); */
-        /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
+      }
+
+      .optionscam {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: 'colors darklight';
       }
 
       .colors {
         justify-self: center;
         align-self: center;
         grid-area: colors;
-        transition: color 0.5s;
-        cursor: pointer;
+        /* transition: color 0.5s; */
         display: flex;
       }
 
       .colors svg {
         width: 34px;
         height: 34px;
-        opacity: 0.5;
+        opacity: 1;
+        cursor: pointer;
         transition: all 0.5s;
       }
 
       .colop {
+        display: flex;
+        visibility: hidden;
+        opacity: 0;
+        flex-direction: column;
+        position: absolute;
+        bottom: -10px;
+        left: 16%;
+        gap: 10px;
+        background-color: rgba(158, 158, 158, 0.473);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: solid 1px var(--bor-color);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.5s ease;
+      }
+
+      .colop button {
+        font-family: Modelica-Bold, 'sans serif';
+        font-size: 1.1rem;
+        cursor: pointer;
+        border: none;
+        width: 100%;
+        padding: 10px;
+        background-color: #66666600;
+        color: var(--col-log);
+        transition: all 0.5s ease;
+      }
+
+      .colopen {
+        visibility: visible;
+        opacity: 1;
+        bottom: 60px;
+      }
+
+      .camera {
+        justify-self: center;
+        align-self: center;
+        grid-area: camera;
+        /* transition: color 0.5s; */
+        cursor: pointer;
+        display: flex;
+      }
+
+      .camera svg {
+        width: 40px;
+        height: 40px;
+        opacity: 1;
+        fill: var(--svg-fill);
+        stroke: var(--svg-stor);
+        transition: all 0.5s;
+      }
+
+      .camop {
         display: flex;
         visibility: hidden;
         opacity: 0;
@@ -164,47 +231,15 @@
         transition: all 0.5s ease;
       }
 
-      .colopen {
-        visibility: visible;
-        opacity: 1;
-        bottom: 60px;
-      }
-
-      .camera {
-        justify-self: center;
-        align-self: center;
-        grid-area: camera;
-        transition: color 0.5s;
+      .camop button {
+        font-family: Modelica-Bold, 'sans serif';
+        font-size: 1.1rem;
         cursor: pointer;
-        display: flex;
-      }
-
-      .camera svg {
-        width: 40px;
-        height: 40px;
-        opacity: 0.5;
-        fill: var(--svg-fill);
-        stroke: var(--svg-stor);
-        transition: all 0.5s;
-      }
-
-      .camop {
-        display: flex;
-        visibility: hidden;
-        opacity: 0;
-        flex-direction: column;
-        position: absolute;
-        bottom: -10px;
-        left: 25%;
-        gap: 10px;
-        background-color: rgba(158, 158, 158, 0.473);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: solid 1px var(--bor-color);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        padding: 15px;
-        border-radius: 15px;
-        text-align: center;
+        border: none;
+        width: 100%;
+        padding: 10px;
+        background-color: #66666600;
+        color: var(--col-log);
         transition: all 0.5s ease;
       }
 
@@ -218,7 +253,7 @@
         justify-self: center;
         align-self: center;
         grid-area: darklight;
-        opacity: 0.5;
+        opacity: 1;
         transition: all 0.5s;
         cursor: pointer;
         display: flex;
@@ -256,17 +291,23 @@
         margin-right: 15px;
         fill: var(--col-log);
         transition: all 0.5s;
+        width: clamp(119px, 30vw, 282px);
+        height: auto;
       }
 
       .active svg,
       .colors:hover svg,
       .camera:hover svg,
       .darklight:hover {
-        opacity: 1;
+        filter: drop-shadow(0 0 0.3rem var(--glow));
+        fill: var(--hover);
+        stroke: var(--hover);
       }
 
-      .camop p:hover {
-        color: #e45527;
+      .colop button:hover,
+      .camop button:hover {
+        filter: drop-shadow(0 0 0.3rem var(--glow));
+        color: var(--hover);
       }
     </style>
   </head>
@@ -275,67 +316,78 @@
       <svg
         version="1.1"
         id="logo"
-        x="0"
-        y="0"
+        x="0px"
+        y="0px"
+        viewBox="0 0 221 45.500001"
         xml:space="preserve"
-        width="283"
-        height="58"
         xmlns="http://www.w3.org/2000/svg"
+        xmlns:svg="http://www.w3.org/2000/svg"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:cc="http://creativecommons.org/ns#"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
       >
-        <style type="text/css" id="style33"></style>
-        <g
-          id="g57"
-          transform="matrix(1.28235 0 0 1.28235 -40.338 -61.855)"
-        >
+        <metadata id="metadata33"></metadata>
+        <defs id="defs31" />
+        <style type="text/css" id="style2"></style>
+        <g id="g26" transform="translate(-31.3,-48.1)">
           <path
             class="st0"
-            d="M56.5 84.7v7.1c-2.6 1.1-5.7 1.6-8.8 1.6C41.3 93.4 37 89 37 82.5V65.2h-5.7v-7.4H37v-9.7h8.8v9.7H56v7.4H45.7v15.4c0 3.1 1.9 5.2 4.8 5.2 2 0 4-.3 6-1.1z"
-            id="path35"
+            d="m 56.5,84.7 v 7.1 c -2.6,1.1 -5.7,1.6 -8.8,1.6 C 41.3,93.4 37,89 37,82.5 V 65.2 H 31.3 V 57.8 H 37 v -9.7 h 8.8 v 9.7 H 56 v 7.4 H 45.7 v 15.4 c 0,3.1 1.9,5.2 4.8,5.2 2,0 4,-0.3 6,-1.1 z"
+            id="path4"
           />
           <path
             class="st0"
-            d="M93.5 71.4v21.8H85l-.2-4.9c-2.3 3.1-6.3 5.1-10.6 5.1-7.2 0-12.1-4.3-12.1-10.7 0-6.7 5.9-11 14.8-11 2.4 0 5 .3 7.7.8v-.6c0-4.6-3.1-7.4-8.4-7.4-3.3 0-5.9 1-8.1 2.8L64.4 62c3.7-3 8.1-4.5 14.2-4.5 8.9 0 14.9 5.3 14.9 13.9zm-8.8 6.9c-2.3-.4-4.6-.7-6.6-.7-4.1 0-6.8 1.9-6.8 4.9 0 2.8 1.9 4.7 5.4 4.7 4.2 0 8-3.2 8-8.9z"
-            id="path37"
-          />
-          <path class="st0" d="M155 58.1h8.8v35.1H155z" id="path39" />
-          <path class="st0" d="M155 48.2h8.8v5.1H155z" id="path41" />
-          <path
-            class="st0"
-            d="M169.5 75.5c0-10.7 7.5-17.9 18.7-17.9 4.6 0 8.7 1.5 11.9 4l-5 5.9c-1.8-1.5-3.9-2.4-6.8-2.4-5.8 0-9.7 4.2-9.7 10.5s3.9 10.5 9.8 10.5c3.2 0 5.9-1 7.9-3.1l5 5.8c-3.3 3.3-8 4.8-13.2 4.8-11.1-.1-18.6-7.3-18.6-18.1z"
-            id="path43"
+            d="M 93.5,71.4 V 93.2 H 85 l -0.2,-4.9 c -2.3,3.1 -6.3,5.1 -10.6,5.1 -7.2,0 -12.1,-4.3 -12.1,-10.7 0,-6.7 5.9,-11 14.8,-11 2.4,0 5,0.3 7.7,0.8 v -0.6 c 0,-4.6 -3.1,-7.4 -8.4,-7.4 -3.3,0 -5.9,1 -8.1,2.8 L 64.4,62 c 3.7,-3 8.1,-4.5 14.2,-4.5 8.9,0 14.9,5.3 14.9,13.9 z m -8.8,6.9 c -2.3,-0.4 -4.6,-0.7 -6.6,-0.7 -4.1,0 -6.8,1.9 -6.8,4.9 0,2.8 1.9,4.7 5.4,4.7 4.2,0 8,-3.2 8,-8.9 z"
+            id="path6"
           />
           <path
             class="st0"
-            d="M237.8 71v22.2h-8.4l-.2-5.4c-2.3 3.6-6.3 5.6-10.6 5.6-7.2 0-12.1-4.3-12.1-10.7 0-6.7 5.9-11 14.8-11 2.4 0 5 .3 7.7.8v-.6c0-4.6-3.1-7.4-8.4-7.4-3.3 0-5.9 1-8.1 2.8l-3.8-5.1c3.7-3 8.1-4.5 14.2-4.5 8.9-.2 14.9 5.1 14.9 13.3zm-8.8 7.3c-2.3-.4-4.6-.7-6.6-.7-4.1 0-6.8 1.9-6.8 4.9 0 2.8 1.9 4.7 5.4 4.7 4.1 0 8-3.2 8-8.9z"
-            id="path45"
+            d="m 155,58.1 h 8.8 V 93.2 H 155 Z"
+            id="path8"
           />
           <path
             class="st0"
-            d="M243.5 48.2h8.8v45h-8.8z"
-            id="path47"
+            d="m 155,48.2 h 8.8 v 5.1 H 155 Z"
+            id="path10"
           />
           <path
             class="st0"
-            id="polygon49"
-            d="m124.5 89.2-.3-28.7-12.9 13.7z"
+            d="m 169.5,75.5 c 0,-10.7 7.5,-17.9 18.7,-17.9 4.6,0 8.7,1.5 11.9,4 l -5,5.9 c -1.8,-1.5 -3.9,-2.4 -6.8,-2.4 -5.8,0 -9.7,4.2 -9.7,10.5 0,6.3 3.9,10.5 9.8,10.5 3.2,0 5.9,-1 7.9,-3.1 l 5,5.8 c -3.3,3.3 -8,4.8 -13.2,4.8 C 177,93.5 169.5,86.3 169.5,75.5 Z"
+            id="path12"
           />
           <path
             class="st0"
-            id="polygon51"
-            d="M114.2 57.8h-14v12.9h2.6z"
+            d="m 237.8,71 v 22.2 h -8.4 l -0.2,-5.4 c -2.3,3.6 -6.3,5.6 -10.6,5.6 -7.2,0 -12.1,-4.3 -12.1,-10.7 0,-6.7 5.9,-11 14.8,-11 2.4,0 5,0.3 7.7,0.8 v -0.6 c 0,-4.6 -3.1,-7.4 -8.4,-7.4 -3.3,0 -5.9,1 -8.1,2.8 l -3.8,-5.1 c 3.7,-3 8.1,-4.5 14.2,-4.5 8.9,-0.2 14.9,5.1 14.9,13.3 z m -8.8,7.3 c -2.3,-0.4 -4.6,-0.7 -6.6,-0.7 -4.1,0 -6.8,1.9 -6.8,4.9 0,2.8 1.9,4.7 5.4,4.7 4.1,0 8,-3.2 8,-8.9 z"
+            id="path14"
           />
           <path
             class="st0"
-            id="polygon53"
-            d="M101.7 77.9v15.2h15.1l-12.7-15.2z"
+            d="m 243.5,48.2 h 8.8 v 45 h -8.8 z"
+            id="path16"
+          />
+          <polygon
+            class="st0"
+            points="111.3,74.2 124.5,89.2 124.2,60.5 "
+            id="polygon18"
+          />
+          <polygon
+            class="st0"
+            points="100.2,57.8 100.2,70.7 102.8,70.7 114.2,57.8 "
+            id="polygon20"
+          />
+          <polygon
+            class="st0"
+            points="101.7,93.1 116.8,93.1 104.1,77.9 101.7,77.9 "
+            id="polygon22"
           />
           <path
             class="st0"
-            d="M143.4 85.8c-2.8 0-4.8-2.1-4.8-5.2V65.2h10.3v-7.4h-10.3v-9.7h-8.8v9.7h-3.2l-2.5 2.7v4.7h5.7v17.2c0 6.5 4.3 10.9 10.7 10.9 3.1 0 6.2-.5 8.8-1.6v-7.1c-1.9.9-3.9 1.2-5.9 1.2z"
-            id="path55"
+            d="m 143.4,85.8 c -2.8,0 -4.8,-2.1 -4.8,-5.2 V 65.2 h 10.3 v -7.4 h -10.3 v -9.7 h -8.8 v 9.7 h -3.2 l -2.5,2.7 v 4.7 h 5.7 v 17.2 c 0,6.5 4.3,10.9 10.7,10.9 3.1,0 6.2,-0.5 8.8,-1.6 v -7.1 c -1.9,0.9 -3.9,1.2 -5.9,1.2 z"
+            id="path24"
           />
         </g>
       </svg>
+
       <h1>Nebula X1</h1>
     </div>
     <div class="options">
@@ -386,9 +438,9 @@
           />
         </svg>
         <div class="colop">
-          <p>Matte Grey</p>
-          <p>Matte White</p>
-          <p>Iridescent</p>
+          <button>Matte Grey</button>
+          <button>Matte White</button>
+          <button>Iridescent</button>
         </div>
       </div>
       <div class="camera">
@@ -416,13 +468,13 @@
           </g>
         </svg>
         <div class="camop">
-          <p>Front</p>
-          <p>Back</p>
-          <p>Top</p>
-          <p>Bottom</p>
-          <p>Left Side</p>
-          <p>Right Side</p>
-          <p>Rotation</p>
+          <button>Front</button>
+          <button>Back</button>
+          <button>Top</button>
+          <button>Bottom</button>
+          <button>Left Side</button>
+          <button>Right Side</button>
+          <button>Rotation</button>
         </div>
       </div>
       <div class="darklight">

@@ -18,6 +18,7 @@ import {
   ACESFilmicToneMapping,
   PerspectiveCamera,
   Color,
+  Vector3,
   // HemisphereLight,
   // DirectionalLight,
   // Vector2,
@@ -69,11 +70,8 @@ if (prefersDarkScheme !== true) {
 }
 
 if (currentTheme === 'dark') {
-  // ...let's toggle the .dark-theme class on the body
   document.body.classList.toggle('dark-mode');
-  // Otherwise, if the user's preference in localStorage is light...
 } else if (currentTheme === 'light') {
-  // ...let's toggle the .light-theme class on the body
   document.body.classList.toggle('light-mode');
 }
 
@@ -111,7 +109,9 @@ function init() {
   camera.position.z = 2.5;
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  // controls.autoRotate = true;
+  controls.minDistance = 0.9;
+  controls.maxDistance = 10;
+  controls.enabled = false;
 
   const ktx2Loader = new KTX2Loader()
     .setTranscoderPath('basis/')
@@ -130,17 +130,17 @@ function init() {
       }
     });
 
-    // console.log(model);
-    // model.getObjectByName('front_1').material.color.setHex(0xabb3a9);
-    // model.getObjectByName('back_9').material.color.setHex(0x6b7067);
-    // model
-    //   .getObjectByName('front005_2')
-    //   .material.color.setHex(0x7f8980);
-    // model.getObjectByName('back_2').material.specularIntensity = 1;
+    // model.scale.set(0.3, 0.3, 0.3); front original position
+    // model.position.set(0, -0.79, 0);
+    // model.scale.set(0.4, 0.4, 0.4); after intro slide in
+    // model.position.set(1.7, 0.6, 0);
+    // model.rotation.set(2.2, 0, 1);
     model.scale.set(0.3, 0.3, 0.3);
     model.position.set(0, -0.79, 0);
+    // model.rotation.set(2.2, 0, 1);
     phone.add(model);
     scene.add(phone);
+    // gsap.to(model.position, { duration: 1, x: 1.7 });
   });
 
   // const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 3.8);
@@ -191,9 +191,12 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function render() {
+  const multiple = 2;
+  const rotationVector = new Vector3(0, 1, 0);
+  const angle = ((360 / multiple) * Math.PI) / 180;
   controls.update();
   if (rotate === true) {
-    phone.rotation.y += 0.005;
+    phone.rotateOnAxis(rotationVector, angle * 0.002);
   }
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
@@ -233,16 +236,6 @@ btn.addEventListener('click', () => {
   }
 });
 
-// document.addEventListener('DOMContentLoaded', () => {
-//   if (currentTheme === 'dark') {
-//     icon.style.display = 'block';
-//     icon2.style.display = 'none';
-//   } else if (currentTheme === 'light') {
-//     icon.style.display = 'none';
-//     icon2.style.display = 'block';
-//   }
-// });
-
 // camera controls
 const cambutton = document.querySelector('.camera');
 const camopt = document.querySelector('.camop');
@@ -259,7 +252,7 @@ camoptc[0].addEventListener('click', () => {
   gsap.to(phone.rotation, {
     duration: 1,
     x: 0,
-    y: 0,
+    y: (Math.PI / 180) * 0,
     z: 0,
     ease: 'power1',
   });
@@ -268,6 +261,13 @@ camoptc[0].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -277,7 +277,7 @@ camoptc[1].addEventListener('click', () => {
   gsap.to(phone.rotation, {
     duration: 1,
     x: 0,
-    y: 3.15,
+    y: (Math.PI / 180) * 180,
     z: 0,
     ease: 'power1',
   });
@@ -286,6 +286,13 @@ camoptc[1].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -294,7 +301,7 @@ camoptc[1].addEventListener('click', () => {
 camoptc[2].addEventListener('click', () => {
   gsap.to(phone.rotation, {
     duration: 1,
-    x: 1.575,
+    x: (Math.PI / 180) * 90,
     y: 0,
     z: 0,
     ease: 'power1',
@@ -304,6 +311,13 @@ camoptc[2].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -312,7 +326,7 @@ camoptc[2].addEventListener('click', () => {
 camoptc[3].addEventListener('click', () => {
   gsap.to(phone.rotation, {
     duration: 1,
-    x: -1.575,
+    x: (Math.PI / 180) * -90,
     y: 0,
     z: 0,
     ease: 'power1',
@@ -322,6 +336,13 @@ camoptc[3].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -331,7 +352,7 @@ camoptc[4].addEventListener('click', () => {
   gsap.to(phone.rotation, {
     duration: 1,
     x: 0,
-    y: 1.575,
+    y: (Math.PI / 180) * 90,
     z: 0,
     ease: 'power1',
   });
@@ -340,6 +361,13 @@ camoptc[4].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -349,7 +377,7 @@ camoptc[5].addEventListener('click', () => {
   gsap.to(phone.rotation, {
     duration: 1,
     x: 0,
-    y: -1.575,
+    y: (Math.PI / 180) * -90,
     z: 0,
     ease: 'power1',
   });
@@ -358,6 +386,13 @@ camoptc[5].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -375,13 +410,12 @@ camoptc[6].addEventListener('click', () => {
 const colbutton = document.querySelector('.colors');
 const colopt = document.querySelector('.colop');
 const coloptc = document.querySelector('.colop').children;
-const targetColor1 = new Color(0x595959);
+const targetColor1 = new Color(0x4c4c4c);
 const targetColor2 = new Color(0x2e2e2e);
 const targetColor3 = new Color(0xebebeb);
 const targetColor4 = new Color(0xb7b7b7);
 const targetColor5 = new Color(0xcbcbcb);
 const targetColor6 = new Color(0xffffff);
-// const targetColor6 = new Color(0xffffff);
 colbutton.addEventListener('click', () => {
   colbutton.classList.toggle('active');
   colopt.classList.toggle('colopen');
@@ -403,6 +437,13 @@ coloptc[0].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -541,6 +582,13 @@ coloptc[1].addEventListener('click', () => {
     x: controls.position0.x,
     y: controls.position0.y,
     z: controls.position0.z,
+    ease: 'power1',
+  });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
     ease: 'power1',
   });
   rotate = false;
@@ -695,6 +743,13 @@ coloptc[2].addEventListener('click', () => {
     z: controls.position0.z,
     ease: 'power1',
   });
+  gsap.to(controls.target, {
+    duration: 1,
+    x: 0,
+    y: 0,
+    z: 0,
+    ease: 'power1',
+  });
   rotate = false;
   gsap.to(model.getObjectByName('back_1').material.color, {
     delay: 0.5,
@@ -736,14 +791,6 @@ coloptc[2].addEventListener('click', () => {
     roughness: 0.2,
     ease: 'power1',
   });
-  // gsap.to(model.getObjectByName('back_5').material.color, {
-  //   delay: 0.5,
-  //   duration: 0.5,
-  //   r: targetColor6.r,
-  //   g: targetColor6.g,
-  //   b: targetColor6.b,
-  //   ease: 'power1',
-  // });
   gsap.to(model.getObjectByName('side_2').material.color, {
     delay: 0.5,
     duration: 0.5,
