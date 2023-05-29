@@ -28,7 +28,8 @@ import {
   // ShadowMaterial,
   PMREMGenerator,
   SRGBColorSpace,
-  // PCFShadowMap,
+  LoadingManager,
+  PCFShadowMap,
   Group,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -37,22 +38,53 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Scrollbar from 'smooth-scrollbar';
+
+gsap.registerPlugin(ScrollTrigger);
+const scroller = document.querySelector('.scroller');
+const bodyScrollBar = Scrollbar.init(scroller, {
+  damping: 0.03,
+  delegateTo: document,
+  alwaysShowTracks: true,
+});
+
+ScrollTrigger.scrollerProxy('.scroller', {
+  scrollTop(value) {
+    if (arguments.length) {
+      bodyScrollBar.scrollTop = value;
+    }
+    return bodyScrollBar.scrollTop;
+  },
+});
+
+bodyScrollBar.addListener(ScrollTrigger.update);
+ScrollTrigger.defaults({ scroller });
+window.onbeforeunload = () => {
+  window.scrollTo(0, 0);
+};
+
+document.querySelector('.scroll').addEventListener('click', () => {
+  bodyScrollBar.scrollTo(0, 0, 4000);
+});
 
 let scene;
 let renderer;
 let texture;
 let camera;
 let model;
-const phone = new Group();
+let model2;
+let model3;
 let controls;
-const pixelRatio = window.devicePixelRatio;
+let rotate;
+let colorc;
+let canvas;
 let AA = true;
 let PR = window.devicePixelRatio;
-if (pixelRatio > 1) {
-  AA = false;
-  PR = 1.2;
-}
-let rotate = false;
+const pixelRatio = window.devicePixelRatio;
+const phone = new Group();
+const cpu = new Group();
+const batt = new Group();
 const icon = document.querySelector('.darklight1');
 const icon2 = document.querySelector('.darklight2');
 const btn = document.querySelector('.darklight');
@@ -60,6 +92,11 @@ const currentTheme = localStorage.getItem('theme');
 const prefersDarkScheme = window.matchMedia(
   '(prefers-color-scheme: dark)'
 );
+
+if (pixelRatio > 1) {
+  AA = false;
+  PR = 1.2;
+}
 
 if (prefersDarkScheme !== true) {
   icon.style.display = 'block';
@@ -75,25 +112,94 @@ if (currentTheme === 'dark') {
   document.body.classList.toggle('light-mode');
 }
 
+const containerload = document.getElementById('container-load');
+const progressBar = document.getElementById(
+  'loader-progress-progress'
+);
+const progresspercent = document.getElementById('progresspercent');
+const manager = new LoadingManager();
+manager.onStart = () => {
+  colorc = false;
+  rotate = true;
+};
+
+manager.onLoad = () => {
+  containerload.style.opacity = 0;
+  setTimeout(() => {
+    containerload.style.display = 'none';
+  }, '1100');
+  gsap.to(phone.position, {
+    duration: 1,
+    x: 0,
+    y: -0.2,
+  });
+  gsap.fromTo(
+    '.title',
+    {
+      duration: 1,
+      opacity: 0,
+    },
+    {
+      duration: 1,
+      opacity: 1,
+    }
+  );
+  gsap.fromTo(
+    'section',
+    {
+      duration: 1,
+      opacity: 0,
+    },
+    {
+      duration: 1,
+      opacity: 1,
+    }
+  );
+  gsap.fromTo(
+    '.options',
+    {
+      duration: 1,
+      y: 100,
+      opacity: 0,
+    },
+    {
+      duration: 1,
+      y: 0,
+      opacity: 1,
+    }
+  );
+};
+
+manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+  progressBar.style.width = `${(itemsLoaded / itemsTotal) * 100}%`;
+  progresspercent.innerHTML = `${Math.floor(
+    (itemsLoaded / itemsTotal) * 100
+  )}%`;
+};
+
+manager.onError = () => {};
+
 function init() {
   const MODEL_PATH = 'taktical_phone3.glb';
-  const canvas = document.querySelector('#c');
+  const MODEL1_PATH = 'cpu.glb';
+  const MODEL2_PATH = 'batt.glb';
+  canvas = document.getElementById('c');
 
   renderer = new WebGLRenderer({
     canvas,
-    antialias: true,
-    alpha: AA,
+    antialias: AA,
+    alpha: true,
   });
-  // renderer.shadowMap.enabled = true;
-  // renderer.shadow = PCFShadowMap;
+  renderer.shadowMap.enabled = true;
+  renderer.shadow = PCFShadowMap;
   renderer.setPixelRatio(PR);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.setClearColor(0x000000, 0);
-  document.body.appendChild(renderer.domElement);
+  // document.body.appendChild(renderer.domElement);
 
-  const environment = new RoomEnvironment();
+  const environment = new RoomEnvironment(manager);
   const pmremGenerator = new PMREMGenerator(renderer);
   scene = new Scene();
   scene.environment = pmremGenerator.fromScene(environment).texture;
@@ -101,7 +207,7 @@ function init() {
 
   camera = new PerspectiveCamera(
     50,
-    window.innerWidth / window.innerHeight,
+    canvas.clientWidth / canvas.clientHeight,
     0.01,
     50
   );
@@ -112,35 +218,61 @@ function init() {
   controls.minDistance = 0.9;
   controls.maxDistance = 10;
   controls.enabled = false;
+  controls.enableZoom = false;
 
-  const ktx2Loader = new KTX2Loader()
+  const ktx2Loader = new KTX2Loader(manager)
     .setTranscoderPath('basis/')
     .detectSupport(renderer);
 
-  const loader = new GLTFLoader();
+  const loader = new GLTFLoader(manager);
   loader.setKTX2Loader(ktx2Loader);
   loader.setMeshoptDecoder(MeshoptDecoder);
   loader.load(MODEL_PATH, (gltf) => {
     model = gltf.scene;
     model.traverse((o) => {
       if (o.isMesh) {
-        // o.castShadow = true;
-        // o.receiveShadow = true;
+        o.castShadow = true;
+        o.receiveShadow = true;
         o.envMap = texture;
       }
     });
 
-    // model.scale.set(0.3, 0.3, 0.3); front original position
-    // model.position.set(0, -0.79, 0);
-    // model.scale.set(0.4, 0.4, 0.4); after intro slide in
-    // model.position.set(1.7, 0.6, 0);
-    // model.rotation.set(2.2, 0, 1);
-    model.scale.set(0.3, 0.3, 0.3);
-    model.position.set(0, -0.79, 0);
-    // model.rotation.set(2.2, 0, 1);
+    phone.scale.set(0.5, 0.5, 0.5);
+    model.position.set(0, -2.6, 0);
+    phone.position.set(4, 1, 0);
+    phone.rotation.set(0, 0, 0.3);
     phone.add(model);
     scene.add(phone);
-    // gsap.to(model.position, { duration: 1, x: 1.7 });
+  });
+
+  loader.load(MODEL1_PATH, (gltf) => {
+    model2 = gltf.scene;
+    model2.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+        o.envMap = texture;
+      }
+    });
+
+    cpu.position.set(0, -2.6, 0.1);
+    cpu.add(model2);
+    phone.add(cpu);
+  });
+
+  loader.load(MODEL2_PATH, (gltf) => {
+    model3 = gltf.scene;
+    model3.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+        o.envMap = texture;
+      }
+    });
+
+    batt.position.set(0, -2.6, 0.5);
+    batt.add(model3);
+    phone.add(batt);
   });
 
   // const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 3.8);
@@ -148,8 +280,8 @@ function init() {
 
   // Add directional Light to scene
   // const d = 2;
-  // const dirLight = new DirectionalLight(0xffffff, 0.2);
-  // dirLight.position.set(-8, 12, 8);
+  // const dirLight = new DirectionalLight(0xffffff, 4);
+  // dirLight.position.set(0, 5, 6);
   // dirLight.castShadow = true;
   // dirLight.shadow.mapSize = new Vector2(2048, 2048);
   // dirLight.shadow.camera.near = 1;
@@ -176,20 +308,13 @@ function init() {
 init();
 
 function resizeRendererToDisplaySize(renderer) {
-  const canvas = renderer.domElement;
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const canvasPixelWidth = canvas.width / window.devicePixelRatio;
-  const canvasPixelHeight = canvas.height / window.devicePixelRatio;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
 
-  const needResize =
-    canvasPixelWidth !== width || canvasPixelHeight !== height;
-  if (needResize) {
+  if (canvas.width !== width || canvas.height !== height) {
     renderer.setSize(width, height, false);
   }
-  return needResize;
 }
-
 function render() {
   const multiple = 2;
   const rotationVector = new Vector3(0, 1, 0);
@@ -208,6 +333,198 @@ function render() {
   requestAnimationFrame(render);
 }
 render();
+
+// const canvas = document.getElementById('c');
+// const evt = new Event('wheel', {
+//   bubbles: true,
+//   cancelable: true,
+// });
+// const zoomInBtn = document.querySelectorAll('.zoom_in');
+// zoomInBtn.forEach((btn) =>
+//   btn.addEventListener('click', () => {
+//     console.debug('zoom in');
+//     evt.deltaY = -240;
+//     canvas.dispatchEvent(evt);
+//   })
+// );
+
+// const zoomOutBtn = document.querySelectorAll('.zoom_out');
+// zoomOutBtn.forEach((btn) =>
+//   btn.addEventListener('click', () => {
+//     console.debug('zoom out');
+//     evt.deltaY = +240;
+//     canvas.dispatchEvent(evt);
+//   })
+// );
+
+// const sections = gsap.utils.toArray('section');
+// gsap.to('section', {
+//   scrollTrigger: {
+//     trigger: '.scroll-content',
+//     pin: false,
+//     start: 'top top',
+//     end: 'bottom bottom',
+//     scrub: 1,
+//     snap: {
+//       snapTo: 1 / (sections.length - 1),
+//       duration: { min: 0.5, max: 1.5 },
+//       delay: 0.1,
+//       inertia: false,
+//       ease: 'power1.inOut',
+//     },
+//   },
+// });
+
+const tl1 = gsap.timeline({
+  scrollTrigger: {
+    trigger: '.design',
+    pin: false,
+    start: 'top top',
+    end: '+=90%',
+    scrub: 0.2,
+    // toggleActions: 'play none none reset',
+    onEnter: () => {
+      rotate = false;
+    },
+    onLeaveBack: () => {
+      rotate = true;
+    },
+  },
+});
+tl1
+  .to('.scrollindc', { opacity: 0 })
+  .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=70%')
+  .to(
+    phone.rotation,
+    {
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * 20,
+      z: (Math.PI / 180) * 90,
+    },
+    '-=70%'
+  )
+  .to(phone.position, { x: 0.2, y: 0, z: 0 }, '-=70%')
+  .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=70%');
+
+const tl2 = gsap.timeline({
+  scrollTrigger: {
+    trigger: '.power',
+    pin: false,
+    start: 'top center',
+    end: '+=70%',
+    scrub: 0.2,
+    // toggleActions: 'play none none reset',
+  },
+});
+tl2
+  .to(phone.rotation, {
+    x: (Math.PI / 180) * 180,
+    y: (Math.PI / 180) * 0,
+    z: (Math.PI / 180) * 180,
+  })
+  .to(phone.position, { x: 0, y: -1, z: 0 }, '-=100%')
+  .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=100%')
+  .to(cpu.position, { z: 0 }, '-=10%');
+
+const tl3 = gsap.timeline({
+  scrollTrigger: {
+    trigger: '.battery',
+    pin: false,
+    start: 'top center',
+    end: '+=70%',
+    scrub: 0.2,
+    // toggleActions: 'play none none reset',
+  },
+});
+tl3
+  .to(phone.rotation, {
+    x: (Math.PI / 180) * 180,
+    y: (Math.PI / 180) * 0,
+    z: (Math.PI / 180) * 180,
+  })
+  .to(cpu.position, { z: 0.2 })
+  .to(phone.position, { y: 1 }, '-=100%')
+  .to(batt.position, { z: 0 }, '-=10%');
+
+const tl4 = gsap.timeline({
+  scrollTrigger: {
+    trigger: '.display',
+    pin: false,
+    start: 'top center',
+    end: '+=70%',
+    scrub: 0.2,
+    // toggleActions: 'play none none reset',
+  },
+});
+tl4
+  .to(batt.position, { z: 0.5 })
+  .to(
+    phone.rotation,
+    {
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * 200,
+      z: (Math.PI / 180) * 180,
+    },
+    '-=100%'
+  )
+  .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=100%')
+  .to(phone.position, { y: 0 }, '-=100%');
+
+const tl5 = gsap.timeline({
+  scrollTrigger: {
+    trigger: '.threedex',
+    pin: false,
+    start: 'top center',
+    end: 'max',
+    scrub: 0.2,
+    // toggleActions: 'play none none reset',
+    onEnter: () => {
+      controls.enabled = true;
+      document.querySelector('.camera').classList.toggle('cameraon');
+      document.querySelector('.webgl').classList.toggle('webglon');
+      document
+        .querySelector('.options')
+        .classList.toggle('optionscam');
+      colorc = true;
+    },
+    onLeave: () => {
+      controls.enableZoom = true;
+    },
+
+    onEnterBack: () => {
+      controls.enabled = false;
+      document.querySelector('.camera').classList.toggle('cameraon');
+      document.querySelector('.webgl').classList.toggle('webglon');
+      document
+        .querySelector('.options')
+        .classList.toggle('optionscam');
+      gsap.to(controls.object.position, {
+        x: controls.position0.x,
+        y: controls.position0.y,
+        z: controls.position0.z,
+        ease: 'power1',
+      });
+      gsap.to(controls.target, {
+        x: 0,
+        y: 0,
+        z: 0,
+        ease: 'power1',
+      });
+      rotate = false;
+      colorc = false;
+    },
+  },
+});
+tl5
+  .to(phone.rotation, {
+    x: (Math.PI / 180) * 0,
+    y: (Math.PI / 180) * 0,
+    z: (Math.PI / 180) * 0,
+  })
+  .to(phone.position, { x: 0, y: 0 }, '-=100%')
+  .to(phone.scale, { x: 0.3, y: 0.3, z: 0.3 }, '-=100%')
+  .to('.scroll', { opacity: 1 }, '-=80%')
+  .to('.scroll', { visibility: 'visible' }, '-=80%');
 
 btn.addEventListener('click', () => {
   if (prefersDarkScheme.matches) {
@@ -424,457 +741,847 @@ colbutton.addEventListener('click', () => {
     cambutton.classList.toggle('active');
   }
 });
+
 coloptc[0].addEventListener('click', () => {
-  gsap.to(phone.rotation, {
-    duration: 1,
-    x: 0,
-    y: 3.15,
-    z: 0,
-    ease: 'power1',
-  });
-  gsap.to(controls.object.position, {
-    duration: 1,
-    x: controls.position0.x,
-    y: controls.position0.y,
-    z: controls.position0.z,
-    ease: 'power1',
-  });
-  gsap.to(controls.target, {
-    duration: 1,
-    x: 0,
-    y: 0,
-    z: 0,
-    ease: 'power1',
-  });
-  rotate = false;
-  gsap.to(model.getObjectByName('back_1').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor1.r,
-    g: targetColor1.g,
-    b: targetColor1.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_1').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor2.r,
-    g: targetColor2.g,
-    b: targetColor2.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    metalness: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor1.r,
-    g: targetColor1.g,
-    b: targetColor1.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor1.r,
-    g: targetColor1.g,
-    b: targetColor1.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    metalness: 0.1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    specularIntensity: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    ior: 1.45,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_3').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor1.r,
-    g: targetColor1.g,
-    b: targetColor1.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_3').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor1.r,
-    g: targetColor1.g,
-    b: targetColor1.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
+  if (colorc === true) {
+    gsap.to(phone.rotation, {
+      duration: 1,
+      x: 0,
+      y: 3.15,
+      z: 0,
+      ease: 'power1',
+    });
+    gsap.to(controls.object.position, {
+      duration: 1,
+      x: controls.position0.x,
+      y: controls.position0.y,
+      z: controls.position0.z,
+      ease: 'power1',
+    });
+    gsap.to(controls.target, {
+      duration: 1,
+      x: 0,
+      y: 0,
+      z: 0,
+      ease: 'power1',
+    });
+    rotate = false;
+    gsap.to(model.getObjectByName('back_1').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_1').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor2.r,
+      g: targetColor2.g,
+      b: targetColor2.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0.1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      specularIntensity: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      ior: 1.45,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+  } else {
+    gsap.to(model.getObjectByName('back_1').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_1').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor2.r,
+      g: targetColor2.g,
+      b: targetColor2.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0.1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      specularIntensity: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      ior: 1.45,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor1.r,
+      g: targetColor1.g,
+      b: targetColor1.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+  }
 });
 
 coloptc[1].addEventListener('click', () => {
-  gsap.to(phone.rotation, {
-    duration: 1,
-    x: 0,
-    y: 3.15,
-    z: 0,
-    ease: 'power1',
-  });
-  gsap.to(controls.object.position, {
-    duration: 1,
-    x: controls.position0.x,
-    y: controls.position0.y,
-    z: controls.position0.z,
-    ease: 'power1',
-  });
-  gsap.to(controls.target, {
-    duration: 1,
-    x: 0,
-    y: 0,
-    z: 0,
-    ease: 'power1',
-  });
-  rotate = false;
-  gsap.to(model.getObjectByName('back_1').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor3.r,
-    g: targetColor3.g,
-    b: targetColor3.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_1').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor3.r,
-    g: targetColor3.g,
-    b: targetColor3.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    metalness: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 0.5,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor3.r,
-    g: targetColor3.g,
-    b: targetColor3.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor3.r,
-    g: targetColor3.g,
-    b: targetColor3.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    metalness: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 0.5,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    specularIntensity: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    ior: 1.45,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_3').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor3.r,
-    g: targetColor3.g,
-    b: targetColor3.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_3').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor6.r,
-    g: targetColor6.g,
-    b: targetColor6.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 0.1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor6.r,
-    g: targetColor6.g,
-    b: targetColor6.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 0,
-    ease: 'power1',
-  });
+  if (colorc === true) {
+    gsap.to(phone.rotation, {
+      duration: 1,
+      x: 0,
+      y: 3.15,
+      z: 0,
+      ease: 'power1',
+    });
+    gsap.to(controls.object.position, {
+      duration: 1,
+      x: controls.position0.x,
+      y: controls.position0.y,
+      z: controls.position0.z,
+      ease: 'power1',
+    });
+    gsap.to(controls.target, {
+      duration: 1,
+      x: 0,
+      y: 0,
+      z: 0,
+      ease: 'power1',
+    });
+    rotate = false;
+    gsap.to(model.getObjectByName('back_1').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_1').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.5,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.5,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      specularIntensity: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      ior: 1.45,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor6.r,
+      g: targetColor6.g,
+      b: targetColor6.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor6.r,
+      g: targetColor6.g,
+      b: targetColor6.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+  } else {
+    gsap.to(model.getObjectByName('back_1').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_1').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.5,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.5,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      specularIntensity: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      ior: 1.45,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor3.r,
+      g: targetColor3.g,
+      b: targetColor3.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor6.r,
+      g: targetColor6.g,
+      b: targetColor6.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor6.r,
+      g: targetColor6.g,
+      b: targetColor6.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 0,
+      ease: 'power1',
+    });
+  }
 });
 
 coloptc[2].addEventListener('click', () => {
-  gsap.to(phone.rotation, {
-    duration: 1,
-    x: 0,
-    y: 3.15,
-    z: 0,
-    ease: 'power1',
-  });
-  gsap.to(controls.object.position, {
-    duration: 1,
-    x: controls.position0.x,
-    y: controls.position0.y,
-    z: controls.position0.z,
-    ease: 'power1',
-  });
-  gsap.to(controls.target, {
-    duration: 1,
-    x: 0,
-    y: 0,
-    z: 0,
-    ease: 'power1',
-  });
-  rotate = false;
-  gsap.to(model.getObjectByName('back_1').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor4.r,
-    g: targetColor4.g,
-    b: targetColor4.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_1').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor5.r,
-    g: targetColor5.g,
-    b: targetColor5.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    metalness: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 0.2,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor5.r,
-    g: targetColor5.g,
-    b: targetColor5.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    metalness: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 0.1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    specularIntensity: 0,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_2').material, {
-    delay: 0.5,
-    duration: 0.5,
-    ior: 1.5,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_3').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor5.r,
-    g: targetColor5.g,
-    b: targetColor5.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_3').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor5.r,
-    g: targetColor5.g,
-    b: targetColor5.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('back_5').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material.color, {
-    delay: 0.5,
-    duration: 0.5,
-    r: targetColor5.r,
-    g: targetColor5.g,
-    b: targetColor5.b,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material, {
-    delay: 0.5,
-    duration: 0.5,
-    iridescence: 1,
-    ease: 'power1',
-  });
-  gsap.to(model.getObjectByName('side_4').material, {
-    delay: 0.5,
-    duration: 0.5,
-    roughness: 0.4,
-    ease: 'power1',
-  });
+  if (colorc === true) {
+    gsap.to(phone.rotation, {
+      duration: 1,
+      x: 0,
+      y: 3.15,
+      z: 0,
+      ease: 'power1',
+    });
+    gsap.to(controls.object.position, {
+      duration: 1,
+      x: controls.position0.x,
+      y: controls.position0.y,
+      z: controls.position0.z,
+      ease: 'power1',
+    });
+    gsap.to(controls.target, {
+      duration: 1,
+      x: 0,
+      y: 0,
+      z: 0,
+      ease: 'power1',
+    });
+    rotate = false;
+    gsap.to(model.getObjectByName('back_1').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor4.r,
+      g: targetColor4.g,
+      b: targetColor4.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_1').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.2,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      specularIntensity: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      ior: 1.5,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.4,
+      ease: 'power1',
+    });
+  } else {
+    gsap.to(model.getObjectByName('back_1').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor4.r,
+      g: targetColor4.g,
+      b: targetColor4.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_1').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.2,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      metalness: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      specularIntensity: 0,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_2').material, {
+      delay: 0.5,
+      duration: 0.5,
+      ior: 1.5,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_3').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('back_5').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material.color, {
+      delay: 0.5,
+      duration: 0.5,
+      r: targetColor5.r,
+      g: targetColor5.g,
+      b: targetColor5.b,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      iridescence: 1,
+      ease: 'power1',
+    });
+    gsap.to(model.getObjectByName('side_4').material, {
+      delay: 0.5,
+      duration: 0.5,
+      roughness: 0.4,
+      ease: 'power1',
+    });
+  }
 });
