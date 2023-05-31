@@ -41,22 +41,33 @@
 
       body {
         color: #464646;
-        /* background: #eee; */
         --bor-color: #74747425;
         --svg-fill: #464646;
         --svg-stor: #464646;
         --col-log: #464646;
         --hover: #000;
         --glow: rgb(167, 36, 255);
-        --back-col1: rgba(219, 219, 219, 1);
+        --back-g1: hsla(254, 0%, 100%, 1);
+        --back-g2: 46% 95%, hsla(289, 68%, 69%, 0.41) 0px,
+          transparent 50%;
+        --back-g3: 69% 52%, hsla(275, 95%, 74%, 0.47) 0px,
+          transparent 50%;
+        --back-g4: 20% 58%, hsla(289, 71%, 77%, 0.48) 0px,
+          transparent 50%;
+        --back-g5: 87% 71%, hsla(272, 63%, 76%, 0.56) 0px,
+          transparent 50%;
+        --back-g6: 97% 98%, hsla(321, 79%, 60%, 0.51) 0px,
+          transparent 50%;
+        --back-g7: 84% 19%, hsla(215, 96%, 78%, 0.51) 0px,
+          transparent 50%;
+        --back-col1: rgb(245, 245, 245, 1);
         --back-col2: rgba(60, 1, 107, 1);
-        --back-col3: rgba(219, 219, 219, 0.123);
+        --back-col3: rgba(219, 219, 219, 0.35);
         transition: all 0.5s;
       }
 
       body.dark-theme {
         color: #eee;
-        /* background: #464646; */
         transition: all 0.5s;
         --bor-color: #c2c2c2;
         --svg-fill: #cdcdcd;
@@ -64,39 +75,76 @@
         --col-log: #eee;
         --glow: #eee;
         --hover: #fff;
+        --back-g1: hsla(0, 0%, 16%, 1);
+        --back-g2: 46% 95%, hsla(289, 68%, 69%, 0.31) 0px,
+          transparent 50%;
+        --back-g3: 68% 53%, hsla(275, 95%, 74%, 0.3) 0px,
+          transparent 50%;
+        --back-g4: 5% 100%, hsla(289, 71%, 77%, 0.12) 0px,
+          transparent 50%;
+        --back-g5: 87% 71%, hsla(272, 63%, 76%, 0.15) 0px,
+          transparent 50%;
+        --back-g6: 97% 98%, hsla(321, 79%, 60%, 0.14) 0px,
+          transparent 50%;
+        --back-g7: 84% 19%, hsla(215, 96%, 78%, 0.26) 0px,
+          transparent 50%;
         --back-col1: rgba(70, 70, 70, 1);
         --back-col2: rgba(60, 1, 107, 1);
-        --back-col3: rgba(70, 70, 70, 0.377);
+        --back-col3: rgba(70, 70, 70, 0.35);
       }
 
       @media (prefers-color-scheme: dark) {
         body {
           color: #eee;
-          /* background: #464646; */
           --bor-color: #c2c2c2;
           --svg-fill: #cdcdcd;
           --svg-stor: #cdcdcd;
           --col-log: #eee;
           --glow: #eee;
           --hover: #fff;
+          --back-g1: hsla(0, 0%, 16%, 1);
+          --back-g2: 46% 95%, hsla(289, 68%, 69%, 0.31) 0px,
+            transparent 50%;
+          --back-g3: 68% 53%, hsla(275, 95%, 74%, 0.3) 0px,
+            transparent 50%;
+          --back-g4: 5% 100%, hsla(289, 71%, 77%, 0.12) 0px,
+            transparent 50%;
+          --back-g5: 87% 71%, hsla(272, 63%, 76%, 0.15) 0px,
+            transparent 50%;
+          --back-g6: 97% 98%, hsla(321, 79%, 60%, 0.14) 0px,
+            transparent 50%;
+          --back-g7: 84% 19%, hsla(215, 96%, 78%, 0.26) 0px,
+            transparent 50%;
           --back-col1: rgba(70, 70, 70, 1);
           --back-col2: rgba(60, 1, 107, 1);
-          --back-col3: rgba(70, 70, 70, 0.377);
+          --back-col3: rgba(70, 70, 70, 0.35);
           transition: all 0.5s;
         }
 
         body.light-theme {
           color: #464646;
-          /* background: #eee; */
           --bor-color: #74747425;
           --svg-fill: #464646;
           --svg-stor: #464646;
           --col-log: #464646;
           --glow: rgb(167, 36, 255);
           --hover: #000;
-          --back-col1: rgba(219, 219, 219, 1);
+          --back-g1: hsla(254, 0%, 100%, 1);
+          --back-g2: 46% 95%, hsla(289, 68%, 69%, 0.41) 0px,
+            transparent 50%;
+          --back-g3: 69% 52%, hsla(275, 95%, 74%, 0.47) 0px,
+            transparent 50%;
+          --back-g4: 20% 58%, hsla(289, 71%, 77%, 0.48) 0px,
+            transparent 50%;
+          --back-g5: 87% 71%, hsla(272, 63%, 76%, 0.56) 0px,
+            transparent 50%;
+          --back-g6: 97% 98%, hsla(321, 79%, 60%, 0.51) 0px,
+            transparent 50%;
+          --back-g7: 84% 19%, hsla(215, 96%, 78%, 0.51) 0px,
+            transparent 50%;
+          --back-col1: rgba(245, 245, 245, 1);
           --back-col2: rgba(60, 1, 107, 1);
-          --back-col3: rgba(219, 219, 219, 0.123);
+          --back-col3: rgba(219, 219, 219, 0.35);
           transition: all 0.5s;
         }
       }
@@ -107,11 +155,13 @@
 
       ::-webkit-scrollbar-track {
         opacity: 0;
-        background: linear-gradient(
-          to bottom,
-          var(--back-col1) 35%,
-          var(--back-col2) 150%
-        );
+        background-color: var(--back-g1);
+        background-image: radial-gradient(at var(--back-g2)),
+          radial-gradient(at var(--back-g3)),
+          radial-gradient(at var(--back-g4)),
+          radial-gradient(at var(--back-g5)),
+          radial-gradient(at var(--back-g6)),
+          radial-gradient(at var(--back-g7));
       }
 
       ::-webkit-scrollbar-thumb {
@@ -147,11 +197,13 @@
 
       #container-load {
         font-family: Modelica-Bold, 'sans serif';
-        background: linear-gradient(
-          to right bottom,
-          var(--back-col1) 35%,
-          var(--back-col2) 150%
-        );
+        background-color: var(--back-g1);
+        background-image: radial-gradient(at var(--back-g2)),
+          radial-gradient(at var(--back-g3)),
+          radial-gradient(at var(--back-g4)),
+          radial-gradient(at var(--back-g5)),
+          radial-gradient(at var(--back-g6)),
+          radial-gradient(at var(--back-g7));
         color: var(--col-log);
         display: flex;
         flex-direction: column;
@@ -206,11 +258,13 @@
       }
 
       .backcolor {
-        background: linear-gradient(
-          to bottom,
-          var(--back-col1) 35%,
-          var(--back-col2) 150%
-        );
+        background-color: var(--back-g1);
+        background-image: radial-gradient(at var(--back-g2)),
+          radial-gradient(at var(--back-g3)),
+          radial-gradient(at var(--back-g4)),
+          radial-gradient(at var(--back-g5)),
+          radial-gradient(at var(--back-g6)),
+          radial-gradient(at var(--back-g7));
         position: fixed;
         height: 100dvh;
         width: 100vw;
@@ -387,11 +441,13 @@
         }
 
         .three {
-          background: linear-gradient(
-            to bottom,
-            var(--back-col1) 35%,
-            var(--back-col2) 150%
-          );
+          background-color: var(--back-g1);
+          background-image: radial-gradient(at var(--back-g2)),
+            radial-gradient(at var(--back-g3)),
+            radial-gradient(at var(--back-g4)),
+            radial-gradient(at var(--back-g5)),
+            radial-gradient(at var(--back-g6)),
+            radial-gradient(at var(--back-g7));
         }
       }
 
@@ -687,7 +743,7 @@
       }
 
       #logo {
-        margin-right: 15px;
+        margin-right: 30px;
         fill: var(--col-log);
         transition: all 0.5s;
         width: 100%;
@@ -885,7 +941,7 @@
         </section>
         <section class="threedex">
           <h2>CONTROLS</h2>
-          <p>
+          <p class="contr">
             Click the phone and move. <br />Scroll on the phone to
             zoom. <br />Click the camera icon to change view.
             <br />Click the color icon to change the color.

@@ -83,6 +83,11 @@ window.onbeforeunload = () => {
 };
 
 if (window.matchMedia('(max-width: 768px)').matches) {
+  document.querySelector('.contr').innerHTML =
+    'Touch the phone and move. <br />Pinch on the phone to zoom. <br />Touch the camera icon to change view. <br />Touch the color icon to change the color.';
+}
+
+if (window.matchMedia('(max-width: 768px)').matches) {
   document.querySelector('.scroll').addEventListener('click', () => {
     window.scrollTo({
       top: 0,
