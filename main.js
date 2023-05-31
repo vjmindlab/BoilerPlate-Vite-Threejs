@@ -582,10 +582,10 @@ mm.add('(max-width: 768px)', () => {
     scrollTrigger: {
       trigger: '.design',
       pin: false,
-      start: 'bottom-=108px bottom-=18px',
+      start: 'bottom-=10% bottom-=1%',
       end: '+=40%',
       scrub: 0.2,
-      preventOverlaps: true,
+      fastScrollEnd: 300,
       onEnter: () => {
         rotate = false;
       },
@@ -613,10 +613,10 @@ mm.add('(max-width: 768px)', () => {
     scrollTrigger: {
       trigger: '.power',
       pin: false,
-      start: 'top-=108px bottom',
+      start: 'top-=10% bottom',
       end: '+=40%',
       scrub: 0.2,
-      preventOverlaps: true,
+      fastScrollEnd: 300,
     },
   });
   tl2
@@ -633,10 +633,10 @@ mm.add('(max-width: 768px)', () => {
     scrollTrigger: {
       trigger: '.power',
       pin: false,
-      start: 'bottom-=108px bottom',
+      start: 'bottom-=10% bottom',
       end: '+=40%',
       scrub: 0.2,
-      preventOverlaps: true,
+      fastScrollEnd: 300,
     },
   });
   tl3
@@ -653,10 +653,10 @@ mm.add('(max-width: 768px)', () => {
     scrollTrigger: {
       trigger: '.battery',
       pin: false,
-      start: 'bottom-=108px bottom',
+      start: 'bottom-=10% bottom',
       end: '+=40%',
       scrub: 0.2,
-      preventOverlaps: true,
+      fastScrollEnd: 300,
     },
   });
   tl4
@@ -677,10 +677,10 @@ mm.add('(max-width: 768px)', () => {
     scrollTrigger: {
       trigger: '.display',
       pin: false,
-      start: 'bottom bottom',
+      start: 'bottom-=20% bottom',
       end: '+=20%',
       scrub: 0.2,
-      preventOverlaps: true,
+      fastScrollEnd: 300,
       onEnter: () => {
         controls.enabled = true;
         document
@@ -726,9 +726,9 @@ mm.add('(max-width: 768px)', () => {
   });
   tl5
     .to(phone.rotation, {
-      x: (Math.PI / 180) * 0,
-      y: (Math.PI / 180) * 0,
-      z: (Math.PI / 180) * 0,
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * -180,
+      z: (Math.PI / 180) * 180,
     })
     .to(phone.position, { x: 0, y: 0 }, '-=100%')
     .to(phone.scale, { x: 0.3, y: 0.3, z: 0.3 }, '-=100%')
