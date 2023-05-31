@@ -1,3 +1,7 @@
+/* eslint-disable no-redeclare */
+/* eslint-disable block-scoped-var */
+/* eslint-disable no-var */
+/* eslint-disable vars-on-top */
 /* eslint-disable operator-linebreak */
 /* eslint-disable comma-dangle */
 /* eslint-disable no-param-reassign */
@@ -20,8 +24,8 @@ import {
   Color,
   Vector3,
   // HemisphereLight,
-  // DirectionalLight,
-  // Vector2,
+  DirectionalLight,
+  Vector2,
   // PlaneGeometry,
   // Mesh,
   WebGLRenderer,
@@ -31,6 +35,8 @@ import {
   LoadingManager,
   PCFShadowMap,
   Group,
+  // SpotLight,
+  // PointLight,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -42,31 +48,49 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Scrollbar from 'smooth-scrollbar';
 
 gsap.registerPlugin(ScrollTrigger);
-const scroller = document.querySelector('.scroller');
-const bodyScrollBar = Scrollbar.init(scroller, {
-  damping: 0.03,
-  delegateTo: document,
-  alwaysShowTracks: true,
-});
 
-ScrollTrigger.scrollerProxy('.scroller', {
-  scrollTop(value) {
-    if (arguments.length) {
-      bodyScrollBar.scrollTop = value;
-    }
-    return bodyScrollBar.scrollTop;
-  },
-});
+if (window.matchMedia('(min-width: 769px)').matches) {
+  const scroller = document.querySelector('.scroller');
+  const bodyScrollBar = Scrollbar.init(scroller, {
+    damping: 0.03,
+    delegateTo: document,
+    alwaysShowTracks: true,
+    continuousScrolling: true,
+  });
 
-bodyScrollBar.addListener(ScrollTrigger.update);
-ScrollTrigger.defaults({ scroller });
+  ScrollTrigger.scrollerProxy('.scroller', {
+    scrollTop(value) {
+      if (arguments.length) {
+        bodyScrollBar.scrollTop = value;
+      }
+      return bodyScrollBar.scrollTop;
+    },
+  });
+
+  bodyScrollBar.addListener(ScrollTrigger.update);
+  ScrollTrigger.defaults({ scroller });
+  window.onbeforeunload = () => {
+    window.scrollTo(0, 0);
+  };
+
+  document.querySelector('.scroll').addEventListener('click', () => {
+    bodyScrollBar.scrollTo(0, 0, 4000);
+  });
+}
+
 window.onbeforeunload = () => {
   window.scrollTo(0, 0);
 };
 
-document.querySelector('.scroll').addEventListener('click', () => {
-  bodyScrollBar.scrollTo(0, 0, 4000);
-});
+if (window.matchMedia('(max-width: 768px)').matches) {
+  document.querySelector('.scroll').addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth',
+    });
+  });
+}
 
 let scene;
 let renderer;
@@ -79,8 +103,8 @@ let controls;
 let rotate;
 let colorc;
 let canvas;
-let AA = true;
 let PR = window.devicePixelRatio;
+const mm = gsap.matchMedia();
 const pixelRatio = window.devicePixelRatio;
 const phone = new Group();
 const cpu = new Group();
@@ -94,22 +118,15 @@ const prefersDarkScheme = window.matchMedia(
 );
 
 if (pixelRatio > 1) {
-  AA = false;
   PR = 1.2;
 }
 
-if (prefersDarkScheme !== true) {
+if (currentTheme === 'dark') {
   icon.style.display = 'block';
   icon2.style.display = 'none';
 } else {
   icon.style.display = 'none';
   icon2.style.display = 'block';
-}
-
-if (currentTheme === 'dark') {
-  document.body.classList.toggle('dark-mode');
-} else if (currentTheme === 'light') {
-  document.body.classList.toggle('light-mode');
 }
 
 const containerload = document.getElementById('container-load');
@@ -128,46 +145,97 @@ manager.onLoad = () => {
   setTimeout(() => {
     containerload.style.display = 'none';
   }, '1100');
-  gsap.to(phone.position, {
-    duration: 1,
-    x: 0,
-    y: -0.2,
+  mm.add('(min-width: 769px)', () => {
+    gsap.to(phone.position, {
+      duration: 1,
+      x: 0,
+      y: -0.2,
+    });
+    gsap.fromTo(
+      '.title',
+      {
+        duration: 1,
+        opacity: 0,
+      },
+      {
+        duration: 1,
+        opacity: 1,
+      }
+    );
+    gsap.fromTo(
+      'section',
+      {
+        duration: 1,
+        opacity: 0,
+      },
+      {
+        duration: 1,
+        opacity: 1,
+      }
+    );
+    gsap.fromTo(
+      '.options',
+      {
+        duration: 1,
+        y: 100,
+        opacity: 0,
+      },
+      {
+        duration: 1,
+        y: 0,
+        opacity: 1,
+      }
+    );
   });
-  gsap.fromTo(
-    '.title',
-    {
+
+  mm.add('(max-width: 768px)', () => {
+    gsap.to(phone.position, {
       duration: 1,
-      opacity: 0,
-    },
-    {
-      duration: 1,
-      opacity: 1,
-    }
-  );
-  gsap.fromTo(
-    'section',
-    {
-      duration: 1,
-      opacity: 0,
-    },
-    {
-      duration: 1,
-      opacity: 1,
-    }
-  );
-  gsap.fromTo(
-    '.options',
-    {
-      duration: 1,
-      y: 100,
-      opacity: 0,
-    },
-    {
-      duration: 1,
+      x: 0,
       y: 0,
-      opacity: 1,
-    }
-  );
+    });
+    gsap.to(phone.scale, {
+      duration: 1,
+      x: 0.35,
+      y: 0.35,
+      z: 0.35,
+    });
+    gsap.fromTo(
+      '.title',
+      {
+        duration: 1,
+        opacity: 0,
+      },
+      {
+        duration: 1,
+        opacity: 1,
+      }
+    );
+    gsap.fromTo(
+      'section',
+      {
+        duration: 1,
+        opacity: 0,
+      },
+      {
+        duration: 1,
+        opacity: 1,
+      }
+    );
+    gsap.fromTo(
+      '.options',
+      {
+        duration: 1,
+        y: 100,
+        opacity: 0,
+      },
+      {
+        duration: 1,
+        y: 0,
+        opacity: 1,
+      }
+    );
+  });
 };
 
 manager.onProgress = (url, itemsLoaded, itemsTotal) => {
@@ -187,7 +255,7 @@ function init() {
 
   renderer = new WebGLRenderer({
     canvas,
-    antialias: AA,
+    antialias: true,
     alpha: true,
   });
   renderer.shadowMap.enabled = true;
@@ -278,31 +346,30 @@ function init() {
   // const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 3.8);
   // scene.add(hemiLight);
 
-  // Add directional Light to scene
-  // const d = 2;
-  // const dirLight = new DirectionalLight(0xffffff, 4);
-  // dirLight.position.set(0, 5, 6);
-  // dirLight.castShadow = true;
-  // dirLight.shadow.mapSize = new Vector2(2048, 2048);
-  // dirLight.shadow.camera.near = 1;
-  // dirLight.shadow.camera.far = 150;
-  // dirLight.shadow.camera.left = d * -1;
-  // dirLight.shadow.camera.right = d;
-  // dirLight.shadow.camera.top = d;
-  // dirLight.shadow.camera.bottom = d * -1;
-  // dirLight.shadow.bias = -0.0001;
-  // scene.add(dirLight);
+  const d = 2;
+  const dirLight = new DirectionalLight(0xffffff, 1);
+  dirLight.position.set(1, 0.5, 1);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize = new Vector2(2048, 2048);
+  dirLight.shadow.camera.near = 1;
+  dirLight.shadow.camera.far = 150;
+  dirLight.shadow.camera.left = d * -1;
+  dirLight.shadow.camera.right = d;
+  dirLight.shadow.camera.top = d;
+  dirLight.shadow.camera.bottom = d * -1;
+  dirLight.shadow.bias = -0.0001;
+  scene.add(dirLight);
 
-  // const shadowGeometry = new PlaneGeometry(5, 5, 1, 1);
+  // const shadowGeometry = new PlaneGeometry(20, 20, 1, 1);
   // const shadowMaterial = new ShadowMaterial({
-  //   opacity: 0.3,
+  // opacity: 0.3,
   // });
 
-  // Add the Shadow Catcher to scene
   // const shadowCatcher = new Mesh(shadowGeometry, shadowMaterial);
   // shadowCatcher.rotation.x = -0.5 * Math.PI;
   // shadowCatcher.receiveShadow = true;
-  // shadowCatcher.position.y = -1;
+  // shadowCatcher.position.y = 3;
+  // shadowCatcher.position.z = -0.2;
   // scene.add(shadowCatcher);
 }
 init();
@@ -334,29 +401,6 @@ function render() {
 }
 render();
 
-// const canvas = document.getElementById('c');
-// const evt = new Event('wheel', {
-//   bubbles: true,
-//   cancelable: true,
-// });
-// const zoomInBtn = document.querySelectorAll('.zoom_in');
-// zoomInBtn.forEach((btn) =>
-//   btn.addEventListener('click', () => {
-//     console.debug('zoom in');
-//     evt.deltaY = -240;
-//     canvas.dispatchEvent(evt);
-//   })
-// );
-
-// const zoomOutBtn = document.querySelectorAll('.zoom_out');
-// zoomOutBtn.forEach((btn) =>
-//   btn.addEventListener('click', () => {
-//     console.debug('zoom out');
-//     evt.deltaY = +240;
-//     canvas.dispatchEvent(evt);
-//   })
-// );
-
 // const sections = gsap.utils.toArray('section');
 // gsap.to('section', {
 //   scrollTrigger: {
@@ -374,172 +418,338 @@ render();
 //     },
 //   },
 // });
+mm.add('(min-width: 769px)', () => {
+  const tl1 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.design',
+      pin: false,
+      start: 'top top',
+      end: '+=90%',
+      scrub: 0.2,
+      onEnter: () => {
+        rotate = false;
+      },
+      onLeaveBack: () => {
+        rotate = true;
+      },
+    },
+  });
+  tl1
+    .to('.scrollindc', { opacity: 0 })
+    .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=70%')
+    .to(
+      phone.rotation,
+      {
+        x: (Math.PI / 180) * 180,
+        y: (Math.PI / 180) * 20,
+        z: (Math.PI / 180) * 90,
+      },
+      '-=70%'
+    )
+    .to(phone.position, { x: 0.2, y: 0, z: 0 }, '-=70%')
+    .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=70%');
 
-const tl1 = gsap.timeline({
-  scrollTrigger: {
-    trigger: '.design',
-    pin: false,
-    start: 'top top',
-    end: '+=90%',
-    scrub: 0.2,
-    // toggleActions: 'play none none reset',
-    onEnter: () => {
-      rotate = false;
+  const tl2 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.power',
+      pin: false,
+      start: 'top center',
+      end: '+=70%',
+      scrub: 0.2,
     },
-    onLeaveBack: () => {
-      rotate = true;
-    },
-  },
-});
-tl1
-  .to('.scrollindc', { opacity: 0 })
-  .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=70%')
-  .to(
-    phone.rotation,
-    {
+  });
+  tl2
+    .to(phone.rotation, {
       x: (Math.PI / 180) * 180,
-      y: (Math.PI / 180) * 20,
-      z: (Math.PI / 180) * 90,
-    },
-    '-=70%'
-  )
-  .to(phone.position, { x: 0.2, y: 0, z: 0 }, '-=70%')
-  .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=70%');
-
-const tl2 = gsap.timeline({
-  scrollTrigger: {
-    trigger: '.power',
-    pin: false,
-    start: 'top center',
-    end: '+=70%',
-    scrub: 0.2,
-    // toggleActions: 'play none none reset',
-  },
-});
-tl2
-  .to(phone.rotation, {
-    x: (Math.PI / 180) * 180,
-    y: (Math.PI / 180) * 0,
-    z: (Math.PI / 180) * 180,
-  })
-  .to(phone.position, { x: 0, y: -1, z: 0 }, '-=100%')
-  .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=100%')
-  .to(cpu.position, { z: 0 }, '-=10%');
-
-const tl3 = gsap.timeline({
-  scrollTrigger: {
-    trigger: '.battery',
-    pin: false,
-    start: 'top center',
-    end: '+=70%',
-    scrub: 0.2,
-    // toggleActions: 'play none none reset',
-  },
-});
-tl3
-  .to(phone.rotation, {
-    x: (Math.PI / 180) * 180,
-    y: (Math.PI / 180) * 0,
-    z: (Math.PI / 180) * 180,
-  })
-  .to(cpu.position, { z: 0.2 })
-  .to(phone.position, { y: 1 }, '-=100%')
-  .to(batt.position, { z: 0 }, '-=10%');
-
-const tl4 = gsap.timeline({
-  scrollTrigger: {
-    trigger: '.display',
-    pin: false,
-    start: 'top center',
-    end: '+=70%',
-    scrub: 0.2,
-    // toggleActions: 'play none none reset',
-  },
-});
-tl4
-  .to(batt.position, { z: 0.5 })
-  .to(
-    phone.rotation,
-    {
-      x: (Math.PI / 180) * 180,
-      y: (Math.PI / 180) * 200,
+      y: (Math.PI / 180) * 0,
       z: (Math.PI / 180) * 180,
-    },
-    '-=100%'
-  )
-  .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=100%')
-  .to(phone.position, { y: 0 }, '-=100%');
+    })
+    .to(phone.position, { x: 0, y: -1, z: 0 }, '-=100%')
+    .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=100%')
+    .to(cpu.position, { z: 0 }, '-=10%');
 
-const tl5 = gsap.timeline({
-  scrollTrigger: {
-    trigger: '.threedex',
-    pin: false,
-    start: 'top center',
-    end: 'max',
-    scrub: 0.2,
-    // toggleActions: 'play none none reset',
-    onEnter: () => {
-      controls.enabled = true;
-      document.querySelector('.camera').classList.toggle('cameraon');
-      document.querySelector('.webgl').classList.toggle('webglon');
-      document
-        .querySelector('.options')
-        .classList.toggle('optionscam');
-      colorc = true;
+  const tl3 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.battery',
+      pin: false,
+      start: 'top center',
+      end: '+=70%',
+      scrub: 0.2,
     },
-    onLeave: () => {
-      controls.enableZoom = true;
-    },
+  });
+  tl3
+    .to(phone.rotation, {
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * 0,
+      z: (Math.PI / 180) * 180,
+    })
+    .to(cpu.position, { z: 0.2 })
+    .to(phone.position, { y: 1 }, '-=100%')
+    .to(batt.position, { z: 0 }, '-=10%');
 
-    onEnterBack: () => {
-      controls.enabled = false;
-      document.querySelector('.camera').classList.toggle('cameraon');
-      document.querySelector('.webgl').classList.toggle('webglon');
-      document
-        .querySelector('.options')
-        .classList.toggle('optionscam');
-      gsap.to(controls.object.position, {
-        x: controls.position0.x,
-        y: controls.position0.y,
-        z: controls.position0.z,
-        ease: 'power1',
-      });
-      gsap.to(controls.target, {
-        x: 0,
-        y: 0,
-        z: 0,
-        ease: 'power1',
-      });
-      rotate = false;
-      colorc = false;
+  const tl4 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.display',
+      pin: false,
+      start: 'top center',
+      end: '+=70%',
+      scrub: 0.2,
     },
-  },
+  });
+  tl4
+    .to(batt.position, { z: 0.5 })
+    .to(
+      phone.rotation,
+      {
+        x: (Math.PI / 180) * 180,
+        y: (Math.PI / 180) * 200,
+        z: (Math.PI / 180) * 180,
+      },
+      '-=100%'
+    )
+    .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=100%')
+    .to(phone.position, { y: 0 }, '-=100%');
+
+  const tl5 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.threedex',
+      pin: false,
+      start: 'top center',
+      end: 'max',
+      scrub: 0.2,
+      onEnter: () => {
+        controls.enabled = true;
+        document
+          .querySelector('.camera')
+          .classList.toggle('cameraon');
+        document.querySelector('.three').classList.toggle('threeon');
+        document.querySelector('.colop').classList.toggle('colopon');
+        document
+          .querySelector('.options')
+          .classList.toggle('optionscam');
+        colorc = true;
+      },
+      onLeave: () => {
+        controls.enableZoom = true;
+      },
+
+      onEnterBack: () => {
+        controls.enabled = false;
+        document
+          .querySelector('.camera')
+          .classList.toggle('cameraon');
+        document.querySelector('.three').classList.toggle('threeon');
+        document.querySelector('.colop').classList.toggle('colopon');
+        document
+          .querySelector('.options')
+          .classList.toggle('optionscam');
+        gsap.to(controls.object.position, {
+          x: controls.position0.x,
+          y: controls.position0.y,
+          z: controls.position0.z,
+          ease: 'power1',
+        });
+        gsap.to(controls.target, {
+          x: 0,
+          y: 0,
+          z: 0,
+          ease: 'power1',
+        });
+        rotate = false;
+        colorc = false;
+      },
+    },
+  });
+  tl5
+    .to(phone.rotation, {
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * -180,
+      z: (Math.PI / 180) * 180,
+    })
+    .to(phone.position, { x: 0, y: 0 }, '-=100%')
+    .to(phone.scale, { x: 0.3, y: 0.3, z: 0.3 }, '-=100%')
+    .to('.scroll', { opacity: 1 }, '-=80%')
+    .to('.scroll', { visibility: 'visible' }, '-=80%');
 });
-tl5
-  .to(phone.rotation, {
-    x: (Math.PI / 180) * 0,
-    y: (Math.PI / 180) * 0,
-    z: (Math.PI / 180) * 0,
-  })
-  .to(phone.position, { x: 0, y: 0 }, '-=100%')
-  .to(phone.scale, { x: 0.3, y: 0.3, z: 0.3 }, '-=100%')
-  .to('.scroll', { opacity: 1 }, '-=80%')
-  .to('.scroll', { visibility: 'visible' }, '-=80%');
+
+mm.add('(max-width: 768px)', () => {
+  const tl1 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.design',
+      pin: false,
+      start: 'bottom-=108px bottom-=18px',
+      end: '+=40%',
+      scrub: 0.2,
+      preventOverlaps: true,
+      onEnter: () => {
+        rotate = false;
+      },
+      onLeaveBack: () => {
+        rotate = true;
+      },
+    },
+  });
+  tl1
+    .to('.scrollindc', { opacity: 0 })
+    .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=70%')
+    .to(
+      phone.rotation,
+      {
+        x: (Math.PI / 180) * 180,
+        y: (Math.PI / 180) * 20,
+        z: (Math.PI / 180) * 90,
+      },
+      '-=70%'
+    )
+    .to(phone.position, { x: 1, y: 0, z: 0 }, '-=70%')
+    .to(phone.scale, { x: 0.7, y: 0.7, z: 0.7 }, '-=70%');
+
+  const tl2 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.power',
+      pin: false,
+      start: 'top-=108px bottom',
+      end: '+=40%',
+      scrub: 0.2,
+      preventOverlaps: true,
+    },
+  });
+  tl2
+    .to(phone.rotation, {
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * 0,
+      z: (Math.PI / 180) * 180,
+    })
+    .to(phone.position, { x: 0, y: -1, z: 0 }, '-=100%')
+    .to(phone.scale, { x: 0.6, y: 0.6, z: 0.6 }, '-=100%')
+    .to(cpu.position, { z: 0 }, '-=10%');
+
+  const tl3 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.power',
+      pin: false,
+      start: 'bottom-=108px bottom',
+      end: '+=40%',
+      scrub: 0.2,
+      preventOverlaps: true,
+    },
+  });
+  tl3
+    .to(phone.rotation, {
+      x: (Math.PI / 180) * 180,
+      y: (Math.PI / 180) * 0,
+      z: (Math.PI / 180) * 180,
+    })
+    .to(cpu.position, { z: 0.2 })
+    .to(phone.position, { y: 0.8 }, '-=100%')
+    .to(batt.position, { z: 0 }, '-=10%');
+
+  const tl4 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.battery',
+      pin: false,
+      start: 'bottom-=108px bottom',
+      end: '+=40%',
+      scrub: 0.2,
+      preventOverlaps: true,
+    },
+  });
+  tl4
+    .to(batt.position, { z: 0.5 })
+    .to(
+      phone.rotation,
+      {
+        x: (Math.PI / 180) * 180,
+        y: (Math.PI / 180) * 200,
+        z: (Math.PI / 180) * 180,
+      },
+      '-=100%'
+    )
+    .to(phone.scale, { x: 0.35, y: 0.35, z: 0.35 }, '-=100%')
+    .to(phone.position, { y: 0 }, '-=100%');
+
+  const tl5 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.display',
+      pin: false,
+      start: 'bottom bottom',
+      end: '+=20%',
+      scrub: 0.2,
+      preventOverlaps: true,
+      onEnter: () => {
+        controls.enabled = true;
+        document
+          .querySelector('.camera')
+          .classList.toggle('cameraon');
+        document.querySelector('.three').classList.toggle('threeon');
+        document.querySelector('.colop').classList.toggle('colopon');
+        document
+          .querySelector('.options')
+          .classList.toggle('optionscam');
+        colorc = true;
+      },
+      onLeave: () => {
+        controls.enableZoom = true;
+      },
+
+      onEnterBack: () => {
+        controls.enabled = false;
+        document
+          .querySelector('.camera')
+          .classList.toggle('cameraon');
+        document.querySelector('.three').classList.toggle('threeon');
+        document.querySelector('.colop').classList.toggle('colopon');
+        document
+          .querySelector('.options')
+          .classList.toggle('optionscam');
+        gsap.to(controls.object.position, {
+          x: controls.position0.x,
+          y: controls.position0.y,
+          z: controls.position0.z,
+          ease: 'power1',
+        });
+        gsap.to(controls.target, {
+          x: 0,
+          y: 0,
+          z: 0,
+          ease: 'power1',
+        });
+        rotate = false;
+        colorc = false;
+      },
+    },
+  });
+  tl5
+    .to(phone.rotation, {
+      x: (Math.PI / 180) * 0,
+      y: (Math.PI / 180) * 0,
+      z: (Math.PI / 180) * 0,
+    })
+    .to(phone.position, { x: 0, y: 0 }, '-=100%')
+    .to(phone.scale, { x: 0.3, y: 0.3, z: 0.3 }, '-=100%')
+    .to('.scroll', { opacity: 1 }, '-=80%')
+    .to('.scroll', { visibility: 'visible' }, '-=80%');
+});
+
+if (currentTheme === 'dark') {
+  document.body.classList.toggle('dark-theme');
+} else if (currentTheme === 'light') {
+  document.body.classList.toggle('light-theme');
+}
 
 btn.addEventListener('click', () => {
   if (prefersDarkScheme.matches) {
     document.body.classList.toggle('light-theme');
-    const theme = document.body.classList.contains('light-theme')
+    var theme = document.body.classList.contains('light-theme')
       ? 'light'
       : 'dark';
-    localStorage.setItem('theme', theme);
   } else {
     document.body.classList.toggle('dark-theme');
-    const theme = document.body.classList.contains('dark-theme')
+    var theme = document.body.classList.contains('dark-theme')
       ? 'dark'
       : 'light';
-    localStorage.setItem('theme', theme);
   }
+  localStorage.setItem('theme', theme);
 });
 
 btn.addEventListener('click', () => {

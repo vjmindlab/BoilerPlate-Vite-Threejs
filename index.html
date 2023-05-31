@@ -38,10 +38,21 @@
         box-sizing: border-box;
         margin: 0;
       }
-      /*
-            ::-webkit-scrollbar {
-              scrollbar-width: thin;
-            } */
+
+      body {
+        color: #464646;
+        /* background: #eee; */
+        --bor-color: #74747425;
+        --svg-fill: #464646;
+        --svg-stor: #464646;
+        --col-log: #464646;
+        --hover: #000;
+        --glow: rgb(167, 36, 255);
+        --back-col1: rgba(219, 219, 219, 1);
+        --back-col2: rgba(60, 1, 107, 1);
+        --back-col3: rgba(219, 219, 219, 0.123);
+        transition: all 0.5s;
+      }
 
       body.dark-theme {
         color: #eee;
@@ -73,17 +84,16 @@
           --back-col3: rgba(70, 70, 70, 0.377);
           transition: all 0.5s;
         }
-      }
-      @media (prefers-color-scheme: light) {
-        body {
+
+        body.light-theme {
           color: #464646;
           /* background: #eee; */
           --bor-color: #74747425;
           --svg-fill: #464646;
           --svg-stor: #464646;
           --col-log: #464646;
-          --hover: #000;
           --glow: rgb(167, 36, 255);
+          --hover: #000;
           --back-col1: rgba(219, 219, 219, 1);
           --back-col2: rgba(60, 1, 107, 1);
           --back-col3: rgba(219, 219, 219, 0.123);
@@ -91,27 +101,10 @@
         }
       }
 
-      body.light-theme {
-        color: #464646;
-        /* background: #eee; */
-        --bor-color: #74747425;
-        --svg-fill: #464646;
-        --svg-stor: #464646;
-        --col-log: #464646;
-        --glow: rgb(167, 36, 255);
-        --hover: #000;
-        --back-col1: rgba(219, 219, 219, 1);
-        --back-col2: rgba(60, 1, 107, 1);
-        --back-col3: rgba(219, 219, 219, 0.123);
-        transition: all 0.5s;
-      }
-
-      /* width */
       ::-webkit-scrollbar {
         width: 10px;
       }
 
-      /* Track */
       ::-webkit-scrollbar-track {
         opacity: 0;
         background: linear-gradient(
@@ -121,13 +114,11 @@
         );
       }
 
-      /* Handle */
       ::-webkit-scrollbar-thumb {
         background: var(--col-log);
         border-radius: 50px;
       }
 
-      /* Handle on hover */
       ::-webkit-scrollbar-thumb:hover {
         background: #ff5353;
       }
@@ -142,6 +133,16 @@
         font-size: 25px;
         font-family: Modelica-regular, 'sans serif';
         overflow: hidden;
+      }
+
+      @media only screen and (max-width: 768px) {
+        body {
+          overflow: scroll;
+        }
+
+        /* html {
+          scroll-behavior: smooth;
+        } */
       }
 
       #container-load {
@@ -216,18 +217,32 @@
         z-index: -2;
       }
 
+      /* @media only screen and (max-width: 768px) {
+        .backcolor {
+          background: var(--back-col1);
+        }
+      } */
+
       .webgl {
         /* position: fixed; */
         top: 0;
         width: 100%;
         height: 100%;
         display: block;
-        pointer-events: all;
+        /* pointer-events: none; */
         grid-area: webgl;
       }
 
-      .webglon {
-        pointer-events: all;
+      @media only screen and (max-width: 768px) {
+        .webgl {
+          position: fixed;
+          top: 6%;
+          width: 100%;
+          height: 59%;
+          display: block;
+          /* pointer-events: none; */
+          grid-area: webgl;
+        }
       }
 
       .holster {
@@ -241,13 +256,29 @@
         height: 100dvh;
         width: 100%;
         z-index: 10;
-        /* background: var(--back-col1); */
+      }
+
+      @media only screen and (max-width: 768px) {
+        .holster {
+          grid-template-columns: 100%;
+          grid-template-rows: 6% 59% 35%;
+          grid-template-areas:
+            'title'
+            'webgl'
+            'scroller';
+        }
       }
 
       .scroller {
         grid-area: scroller;
         height: 85dvh;
         background: var(--back-col3);
+      }
+
+      @media only screen and (max-width: 768px) {
+        .scroller {
+          background: #00000000;
+        }
       }
 
       .scrollindc {
@@ -272,6 +303,20 @@
         width: 40px;
         fill: var(--svg-fill);
         transition: all 0.5s ease;
+      }
+
+      @media only screen and (max-width: 768px) {
+        .scrollindc {
+          height: 40px;
+          width: 40px;
+          left: 50%;
+          bottom: 10px;
+        }
+
+        .scrollindc svg {
+          height: 30px;
+          width: 30px;
+        }
       }
 
       @keyframes scroll {
@@ -299,30 +344,21 @@
         animation: scroll ease 1.5s infinite;
       }
 
-      /* svg #mouse {
-        fill: rgba(158, 158, 158, 0.815);
-        stroke: var(--bor-color);
-        stroke-width: 5px;
-        transition: stroke 0.5s;
-      } */
-
       .scrollbar-track {
         display: none !important;
       }
 
-      /* .webgl {
-        grid-area: webgl;
-        justify-self: stretch;
-        align-self: stretch;
-      } */
-
-      #c {
+      .three {
         position: relative;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        /* grid-area: webgl; */
+        pointer-events: none;
+      }
+
+      .threeon {
+        pointer-events: all;
       }
 
       section {
@@ -330,16 +366,33 @@
         flex-direction: column;
         width: 100%;
         padding-left: 25px;
-        /* padding-right: 25px; */
         align-items: flex-start;
-        /* align-content: center; */
         justify-content: center;
         flex-wrap: wrap;
         height: calc(100dvh - 15dvh);
         line-height: 2.2rem;
         opacity: 0;
         z-index: -1;
-        /* border: solid 2px greenyellow; */
+      }
+
+      @media only screen and (max-width: 768px) {
+        section {
+          height: 60%;
+          justify-content: flex-start;
+          line-height: 1.6rem;
+          padding-top: 25px;
+          padding-left: 10px;
+          padding-right: 10px;
+          background: var(--back-col1);
+        }
+
+        .three {
+          background: linear-gradient(
+            to bottom,
+            var(--back-col1) 35%,
+            var(--back-col2) 150%
+          );
+        }
       }
 
       h1 {
@@ -356,6 +409,24 @@
       p {
         font-size: clamp(16px, 2vw, 28px);
         margin-left: 5px;
+      }
+
+      span {
+        font-size: 22px;
+      }
+
+      @media only screen and (max-width: 768px) {
+        h2 {
+          margin-bottom: 10px;
+        }
+
+        p {
+          margin-left: 2px;
+        }
+
+        span {
+          font-size: 16px;
+        }
       }
 
       .options {
@@ -383,17 +454,32 @@
         transition: all 0.5s;
       }
 
+      @media only screen and (max-width: 768px) {
+        .options {
+          transform: translateX(-50%);
+          left: 50%;
+          bottom: 10px;
+          height: 40px;
+          width: 150px;
+        }
+      }
+
       .optionscam {
         grid-template-columns: 1fr 1fr 1fr;
         grid-template-areas: 'colors camera darklight';
         width: 250px;
       }
 
+      @media only screen and (max-width: 768px) {
+        .optionscam {
+          width: 200px;
+        }
+      }
+
       .colors {
         justify-self: center;
         align-self: center;
         grid-area: colors;
-        /* transition: color 0.5s; */
         display: flex;
       }
 
@@ -412,7 +498,7 @@
         flex-direction: column;
         position: absolute;
         bottom: -10px;
-        left: 16%;
+        left: 8%;
         gap: 10px;
         background-color: rgba(158, 158, 158, 0.473);
         backdrop-filter: blur(12px);
@@ -451,7 +537,6 @@
         justify-self: center;
         align-self: center;
         grid-area: camera;
-        /* transition: color 0.5s; */
         cursor: pointer;
         display: none;
       }
@@ -476,7 +561,7 @@
         flex-direction: column;
         position: absolute;
         bottom: -10px;
-        left: 20%;
+        left: 16%;
         gap: 10px;
         background-color: rgba(158, 158, 158, 0.473);
         backdrop-filter: blur(12px);
@@ -507,6 +592,27 @@
         bottom: 60px;
       }
 
+      @media only screen and (max-width: 768px) {
+        .colop {
+          padding-top: 15px;
+          padding-bottom: 15px;
+          left: -8%;
+        }
+        .colop button {
+          padding: 5px;
+          width: 140px;
+        }
+
+        .colopon {
+          left: 6%;
+        }
+
+        .camop {
+          left: 9%;
+          gap: 0;
+        }
+      }
+
       .darklight {
         justify-self: center;
         align-self: center;
@@ -517,9 +623,7 @@
         display: flex;
       }
 
-      /* .darklight, */
       .darklight1 {
-        /* display: none; */
         width: 38px;
         height: 38px;
         fill: none;
@@ -528,12 +632,33 @@
       }
 
       .darklight2 svg {
-        /* display: none; */
         width: 38px;
         height: 38px;
         fill: var(--svg-fill);
         stroke: none;
         transition: all 0.5s;
+      }
+
+      @media only screen and (max-width: 768px) {
+        .colors svg {
+          width: 24px;
+          height: 24px;
+        }
+
+        .camera svg {
+          width: 30px;
+          height: 30px;
+        }
+
+        .darklight1 {
+          width: 28px;
+          height: 28px;
+        }
+
+        .darklight2 svg {
+          width: 28px;
+          height: 28px;
+        }
       }
 
       .title {
@@ -551,15 +676,15 @@
         background: var(--back-col3);
       }
 
-      /* .titleback {
-        position: fixed;
-        width: 40%;
-        height: 150px;
-        padding-top: 25px;
-        background: var(--back-col1);
-        z-index: 12;
-        border: solid 2px rgb(50, 47, 255);
-      } */
+      @media only screen and (max-width: 768px) {
+        .title {
+          height: 6%;
+          padding: 10px;
+          width: 100%;
+          background: var(--back-col1);
+          overflow: hidden;
+        }
+      }
 
       #logo {
         margin-right: 15px;
@@ -567,6 +692,13 @@
         transition: all 0.5s;
         width: 100%;
         height: auto;
+      }
+
+      @media only screen and (max-width: 768px) {
+        #logo {
+          margin-right: 0;
+          width: 80%;
+        }
       }
 
       .buy {
@@ -582,6 +714,16 @@
         box-shadow: 0 2px 4px #00000083;
         cursor: pointer;
         z-index: 100;
+      }
+
+      @media only screen and (max-width: 768px) {
+        .buy {
+          top: unset;
+          padding: 10px;
+          font-size: 16px;
+          right: 2%;
+          bottom: 10px;
+        }
       }
 
       .scroll {
@@ -611,6 +753,21 @@
         animation: scroll2 ease 1.5s infinite;
       }
 
+      @media only screen and (max-width: 768px) {
+        .scroll {
+          height: 40px;
+          width: 40px;
+          left: 50%;
+          bottom: 10px;
+          position: fixed;
+        }
+
+        .scroll svg {
+          height: 30px;
+          width: 30px;
+        }
+      }
+
       .buy:active {
         box-shadow: inset 0 2px 2px #00000083;
       }
@@ -619,293 +776,28 @@
         width: 100%;
       }
 
-      .camcontainer {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        grid-template-rows: 1fr 1fr 1fr;
-        grid-auto-columns: 1fr;
-        background-color: rgba(158, 158, 158, 0.473);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: solid 1px var(--bor-color);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        padding: 15px;
-        border-radius: 15px;
-        text-align: center;
-        transition: all 0.5s ease;
-        justify-content: center;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        gap: 0px 0px;
-        grid-auto-flow: row;
-        grid-template-areas:
-          '. top . .'
-          'left front right back'
-          '. bottom . .';
-      }
+      @media (hover: hover) {
+        .active svg,
+        .colors:hover svg,
+        .camera:hover svg,
+        .scroll:hover svg,
+        .darklight:hover {
+          filter: drop-shadow(0 0 0.3rem var(--glow));
+          fill: var(--hover);
+          stroke: var(--hover);
+        }
 
-      .left {
-        grid-area: left;
-        background: #464646;
-        width: 100px;
-        height: 100px;
-        text-align: center;
-        align-self: center;
-      }
-
-      .front {
-        grid-area: front;
-        background: #464646;
-        width: 100px;
-        height: 100px;
-      }
-
-      .right {
-        grid-area: right;
-        background: #464646;
-        width: 100px;
-        height: 100px;
-      }
-
-      .back {
-        grid-area: back;
-        background: #464646;
-        width: 100px;
-        height: 100px;
-      }
-
-      .top {
-        grid-area: top;
-        background: #464646;
-        width: 100px;
-        height: 100px;
-      }
-
-      .bottom {
-        grid-area: bottom;
-        background: #464646;
-        width: 100px;
-        height: 100px;
-      }
-
-      .active svg,
-      .colors:hover svg,
-      .camera:hover svg,
-      .scroll:hover svg,
-      .darklight:hover {
-        filter: drop-shadow(0 0 0.3rem var(--glow));
-        fill: var(--hover);
-        stroke: var(--hover);
-      }
-
-      .colop button:hover,
-      .camop button:hover {
-        filter: drop-shadow(0 0 0.3rem var(--glow));
-        color: var(--hover);
+        .colop button:hover,
+        .camop button:hover {
+          filter: drop-shadow(0 0 0.3rem var(--glow));
+          color: var(--hover);
+        }
       }
     </style>
   </head>
-  <body>
+  <body class=".body">
     <div class="backcolor"></div>
-    <!-- <div class="titleback"></div> -->
     <div class="buy">BUY NOW</div>
-    <!-- <div class="options">
-      <div class="colors">
-        <svg
-          viewBox="0 0 252.667 252.667"
-          xml:space="preserve"
-          width="34"
-          height="34"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <lineargradient id="a">
-              <stop
-                style="stop-color: #57bea2; stop-opacity: 1"
-                offset="0"
-              />
-              <stop
-                style="stop-color: #f0f; stop-opacity: 1"
-                offset="1"
-              />
-            </lineargradient>
-            <lineargradient
-              xlink:href="#a"
-              id="b"
-              x1="155.02"
-              y1="89.848"
-              x2="240.307"
-              y2="401.078"
-              gradientUnits="userSpaceOnUse"
-            />
-          </defs>
-          <path
-            style="display: inline; fill: url(#b); fill-opacity: 1"
-            d="M281.098 88.894a126.333 126.333 0 0 1-77.988 116.717 126.333 126.333 0 0 1-137.676-27.386l89.33-89.33z"
-            transform="rotate(15)"
-          />
-          <path
-            style="display: inline; fill: #666"
-            d="M122.328-146.478a126.333 126.333 0 0 1-89.33 89.33A126.333 126.333 0 0 1-89.031-89.843L.3-179.175z"
-            transform="rotate(135)"
-          />
-          <path
-            style="display: inline; fill: #f9f9f9"
-            d="M-.575 126.484A126.333 126.333 0 0 1-63.742 235.89a126.333 126.333 0 0 1-126.333 0l63.167-109.407z"
-            transform="rotate(-90)"
-          />
-        </svg>
-        <div class="colop">
-          <button>Matte Grey</button>
-          <button>Matte White</button>
-          <button>Iridescent</button>
-        </div>
-      </div>
-      <div class="camera">
-        <svg
-          version="1.1"
-          id="Icon2"
-          viewBox="0 0 34 34"
-          xml:space="preserve"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <style type="text/css"></style>
-          <g
-            id="g21"
-            transform="translate(-3.923 -3.89) scale(1.30769)"
-            style="display: inline"
-          >
-            <path
-              d="M17 8H6c-1.7 0-3 1.3-3 3v10c0 1.7 1.3 3 3 3h11c1.7 0 3-1.3 3-3V11c0-1.7-1.3-3-3-3z"
-              id="path17"
-            />
-            <path
-              d="M28.5 8.1c-.3-.2-.7-.2-1 0l-5 3c-.3.2-.5.5-.5.9v8c0 .4.2.7.5.9l5 3c.1.1.3.1.5.1s.3 0 .5-.1c.3-.2.5-.5.5-.9V9c0-.4-.2-.7-.5-.9z"
-              id="path19"
-            />
-          </g>
-        </svg>
-        <div class="camop">
-          <button>Front</button>
-          <button>Back</button>
-          <button>Top</button>
-          <button>Bottom</button>
-          <button>Left Side</button>
-          <button>Right Side</button>
-          <button>Auto Rotate</button>
-        </div>
-      </div>
-      <div class="darklight">
-        <div class="darklight1">
-          <svg
-            version="1.1"
-            id="Icon3"
-            viewBox="0 0 34 34"
-            xml:space="preserve"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g
-              class="darklight1"
-              id="g715"
-              transform="matrix(1.48984 0 0 1.48984 -.878 -.878)"
-              stroke-width="2"
-            >
-              <path
-                d="M12 7a5 5 0 0 0-3.573 8.497c.343.351.626.77.722 1.251l.53 2.644A2 2 0 0 0 11.638 21h.722a2 2 0 0 0 1.96-1.608l.53-2.644c.096-.482.379-.9.722-1.25A5 5 0 0 0 12 7z"
-                id="path688"
-              />
-              <path
-                d="M12 4V3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                id="path690"
-              />
-              <path
-                d="m18 6 1-1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                id="path692"
-              />
-              <path
-                d="M20 12h1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                id="path694"
-              />
-              <path
-                d="M4 12H3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                id="path696"
-              />
-              <path
-                d="m5 5 1 1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                id="path698"
-              />
-              <path
-                d="M10 17h4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                id="path700"
-              />
-            </g>
-          </svg>
-        </div>
-        <div class="darklight2">
-          <svg
-            class="darklight2"
-            version="1.1"
-            id="Icon4"
-            viewBox="0 0 34 34"
-            xml:space="preserve"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <style type="text/css" id="style15"></style>
-            <g
-              id="g260"
-              transform="matrix(1.32421 0 0 1.32421 1.11 1.11)"
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-            >
-              <path
-                d="M12 .75c.621 0 1.125.503 1.125 1.124V3a1.125 1.125 0 1 1-2.25 0V1.874c0-.621.504-1.125 1.125-1.125z"
-                id="path236"
-                style="stroke-width: 1.12507"
-              />
-              <path
-                d="M20.671 3.329c.44.44.44 1.152 0 1.591l-1.125 1.125a1.125 1.125 0 1 1-1.591-1.591l1.125-1.125c.44-.44 1.152-.44 1.591 0z"
-                id="path238"
-                style="stroke-width: 1.12507"
-              />
-              <path
-                d="M19.875 12c0-.621.504-1.125 1.126-1.125h1.125a1.125 1.125 0 1 1 0 2.25H21A1.125 1.125 0 0 1 19.875 12z"
-                id="path240"
-                style="stroke-width: 1.12507"
-              />
-              <path
-                d="M.75 12c0-.621.503-1.125 1.124-1.125H3a1.125 1.125 0 1 1 0 2.25H1.874A1.125 1.125 0 0 1 .75 12z"
-                id="path242"
-                style="stroke-width: 1.12507"
-              />
-              <path
-                d="M3.329 3.329c.44-.44 1.152-.44 1.591 0l1.125 1.125a1.125 1.125 0 0 1-1.591 1.591L3.329 4.92a1.125 1.125 0 0 1 0-1.591z"
-                id="path244"
-                style="stroke-width: 1.12507"
-              />
-              <path
-                d="M12 5.25A6.75 6.75 0 0 0 7.176 16.72c.3.308.463.591.513.842l.596 2.975a3.375 3.375 0 0 0 3.31 2.713h.81a3.375 3.375 0 0 0 3.31-2.713l.595-2.975c.05-.25.213-.534.514-.842A6.75 6.75 0 0 0 12 5.25zM10.875 16.5a1.125 1.125 0 1 0 0 2.25h2.25a1.125 1.125 0 1 0 0-2.25z"
-                id="path246"
-                style="stroke-width: 1.12507"
-              />
-            </g>
-          </svg>
-        </div>
-      </div>
-    </div> -->
     <div class="scroll">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
         <path
@@ -947,44 +839,31 @@
           <h2>DESIGN</h2>
           <p>
             Design that goes beyond the surface. <br />Dual-side
-            Gorilla® Glass gives toughness. <br />The bezel-less and
-            aluminium frame with 3 choices <br />of color adds
-            elegance, lightness and durability. <br />Select your
-            favorite color at the bottom menu.
+            Gorilla® Glass gives toughness. The bezel-less and
+            aluminium frame with 3 choices of color adds elegance,
+            lightness and durability. Select your favorite color at
+            the bottom menu.
           </p>
-          <!-- <div class="scrollindc">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-            >
-              <path
-                id="wheel"
-                d="M256 217.9L383 345c9.4 9.4 24.6 9.4 33.9 0 9.4-9.4 9.3-24.6 0-34L273 167c-9.1-9.1-23.7-9.3-33.1-.7L95 310.9c-4.7 4.7-7 10.9-7 17s2.3 12.3 7 17c9.4 9.4 24.6 9.4 33.9 0l127.1-127z"
-              ></path>
-            </svg>
-          </div> -->
         </section>
         <section class="cam">
           <h2>CAMERA</h2>
           <p>
-            We've packed Galaxy's biggest sensor yet,
-            <br />light-absorbing pixels and video stabilization
-            technology into 3 Pro-grade Camera.<br /><span
-              style="font-size: 22px"
-            >
-              <br />1 x 300MP 20x optical zoom telephoto <br />1 x
-              300MP wide-angle<br />1 x 200MP ultra wide</span
+            Packed Swith the biggest sensor, light-absorbing pixels
+            and video stabilization technology into 3 Pro-grade
+            Camera.
+            <span
+              ><br />1 x 300MP 20x optical zoom telephoto <br />1 x
+              300MP wide-angle <br />1 x 200MP ultra wide</span
             >
           </p>
         </section>
         <section class="power">
           <h2>POWER</h2>
           <p>
-            Maximize your free time with the most powerful chip
-            <br />on a smartphone the Snapdragon® 8 Gen 2.
-            <br />Improved features across the board means
-            <br />everything from gaming to streaming is optimized
-            <br />and seamless — without draining the battery.
+            Maximize your free time with the most powerful chip on a
+            smartphone the Snapdragon® 8 Gen 2. Improved features
+            across the board means everything from gaming to streaming
+            is optimized and seamless — without draining the battery.
           </p>
         </section>
         <section class="battery">
@@ -1001,17 +880,15 @@
             Dynamic AMOLED 2X delivers clear, colourful details
             onscreen, whether dimmed down low or full-blast
             brightness.11 And 144Hz technology intelligently optimizes
-            the refresh rate to smooth out action <br />and save on
-            battery.
+            the refresh rate to smooth out action and save on battery.
           </p>
         </section>
         <section class="threedex">
           <h2>CONTROLS</h2>
           <p>
-            Click the phone and move
-            <br />Scroll on the phone to zoom <br />Click the camera
-            icon to change view<br />Click the color icon to change
-            the color
+            Click the phone and move. <br />Scroll on the phone to
+            zoom. <br />Click the camera icon to change view.
+            <br />Click the color icon to change the color.
           </p>
         </section>
       </div>
@@ -1216,10 +1093,9 @@
             </div>
           </div>
         </div>
-        <canvas id="c"></canvas>
+        <canvas class="three" id="c"></canvas>
       </div>
     </div>
-    <!-- <canvas id="c" class="webgl"></canvas> -->
     <div id="container-load" class="container-load">
       <div id="progresstext">Loading</div>
       <div id="loader-progress-wrapper">
